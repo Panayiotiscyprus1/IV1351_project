@@ -14,3 +14,4 @@ CREATE DATABASE iv1351;
 \i sql/schema.sql
 \i sql/functions.sql
 \i sql/triggers.sql
+\i sql/seeds.sql

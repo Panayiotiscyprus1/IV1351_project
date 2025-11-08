@@ -99,17 +99,17 @@ CREATE TABLE stage.course_instance (
 -- Planned activities per instance
 DROP TABLE IF EXISTS stage.planned_activity CASCADE;
 CREATE TABLE stage.planned_activity (
-  instance_id   VARCHAR(100),
-  activity_name VARCHAR(500),
-  planned_hours DOUBLE PRECISION
+  instance_id          VARCHAR(100),
+  teaching_activity_id INT,
+  planned_hours        DOUBLE PRECISION
 );
 
 -- Allocations (teacher ↔ planned activity on instance)
 DROP TABLE IF EXISTS stage.allocations CASCADE;
 CREATE TABLE stage.allocations (
-  instance_id     VARCHAR(100),
-  activity_name   VARCHAR(500),
-  employment_id   INT
+  instance_id          VARCHAR(100),
+  teaching_activity_id INT,
+  employment_id        INT
 );
 
 -- Job titles
@@ -228,16 +228,17 @@ JOIN course_layout cl
 INSERT INTO planned_activity (instance_id, teaching_activity_id, planned_hours)
 SELECT pa.instance_id, ta.id, pa.planned_hours
 FROM stage.planned_activity pa
-JOIN teaching_activity ta ON ta.activity_name = pa.activity_name;
+JOIN teaching_activity ta ON ta.id = pa.teaching_activity_id;
 
 \echo '==> Inserting: allocations (validated against planned_activity)'
 INSERT INTO allocations (instance_id, teaching_activity_id, employment_id)
-SELECT al.instance_id, ta.id, al.employment_id
+SELECT al.instance_id,
+       al.teaching_activity_id,
+       al.employment_id
 FROM stage.allocations al
-JOIN teaching_activity ta ON ta.activity_name = al.activity_name
 JOIN planned_activity pa
   ON pa.instance_id = al.instance_id
- AND pa.teaching_activity_id = ta.id;
+ AND pa.teaching_activity_id = al.teaching_activity_id;
 
 \echo '==> Inserting: job_title'
 INSERT INTO job_title (job_title, employment_id)
