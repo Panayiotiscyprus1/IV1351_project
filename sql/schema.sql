@@ -17,7 +17,7 @@ END$$;
 DROP TABLE IF EXISTS person CASCADE;
 CREATE TABLE person (
   id               INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,                        
-  personal_number  INT UNIQUE NOT NULL,                          
+  personal_number  BIGINT UNIQUE NOT NULL,                          
   first_name       VARCHAR(500),
   last_name        VARCHAR(500),
   phone_number     VARCHAR(50),                           

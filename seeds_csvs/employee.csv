@@ -1,0 +1,6 @@
+employment_id,personal_number,skill_level,salary,manager_employment_id,manager_name
+2001,199012010001,advanced,75000,,Ada Lovelace
+2002,198206230002,advanced,72000,2001,Ada Lovelace
+2003,198512150003,intermediate,62000,2001,Ada Lovelace
+2004,197312300004,advanced,70000,2001,Ada Lovelace
+2005,194001100005,beginner,48000,2004,Barbara Liskov

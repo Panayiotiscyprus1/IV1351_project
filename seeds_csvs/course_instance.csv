@@ -1,0 +1,5 @@
+instance_id,study_year,study_period,num_students,course_code,layout_created_at,use_current
+2025-50273,2025,P1,200,IV1351,2025-01-10T00:00:00Z,
+2025-50999,2025,P2,220,IV1351,2025-03-01T00:00:00Z,
+2025-50413,2025,P1,150,IX1500,,true
+2025-52000,2025,P3,120,IX1500,,true
