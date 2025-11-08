@@ -36,7 +36,7 @@ CREATE TABLE department (
 -- ---------- employee ----------
 DROP TABLE IF EXISTS employee CASCADE;
 CREATE TABLE employee (
-  employment_id          INR UNIQUE NOT NULL PRIMARY KEY,                  
+  employment_id          INT UNIQUE NOT NULL PRIMARY KEY,                  
   skill_level            skill_level_t,                          -- "skill_level AS ENUM(...)"
   salary                 NUMERIC(10,2),                         
   manager_name           VARCHAR(500),                           
