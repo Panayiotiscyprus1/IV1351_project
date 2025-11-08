@@ -92,13 +92,13 @@ CREATE UNIQUE INDEX ux_course_layout_code_created
 -- ---------- course_instance ----------
 DROP TABLE IF EXISTS course_instance CASCADE;
 CREATE TABLE course_instance (
-  instance_id       VARCHAR(100) PRIMARY KEY,                    -- your diagram shows UNIQUE; PK is compatible
+  instance_id       VARCHAR(100) PRIMARY KEY,                    
   num_students      INT,
   study_period      study_period_t,                              -- "study_period AS ENUM('P1','P2','P3','P4')"
   study_year        INT,
   course_layout_id  BIGINT NOT NULL
                       REFERENCES course_layout(id)
-                      ON DELETE RESTRICT                         -- diagram note: RESTRICT
+                      ON DELETE RESTRICT                        
 );
 
 -- ---------- planned_activity ----------
@@ -106,35 +106,36 @@ DROP TABLE IF EXISTS planned_activity CASCADE;
 CREATE TABLE planned_activity (
   instance_id        VARCHAR(100) NOT NULL
                        REFERENCES course_instance(instance_id)
-                       ON DELETE CASCADE,                        -- diagram note: CASCADE
-  planned_hours      DOUBLE PRECISION,                           -- "planned_hours FLOAT"
+                       ON DELETE CASCADE,                        
+  planned_hours      DOUBLE PRECISION,                           
   teaching_activity_id BIGINT NOT NULL
                        REFERENCES teaching_activity(id)
-                       ON DELETE RESTRICT,                       -- diagram note: RESTRICT
+                       ON DELETE RESTRICT,                       
   PRIMARY KEY (instance_id, teaching_activity_id)
 );
 
 -- ---------- allocations ----------
-DROP TABLE IF EXISTS allocations CASCADE;
 CREATE TABLE allocations (
-  instance_id    VARCHAR(100) NOT NULL
-                   REFERENCES course_instance(instance_id)
-                   ON DELETE CASCADE,                            -- diagram note: CASCADE
-  employment_id  BIGINT NOT NULL
-                   REFERENCES employee(employment_id)
-                   ON DELETE CASCADE,                            -- diagram note: CASCADE
-  PRIMARY KEY (instance_id, employment_id)
+  instance_id         VARCHAR(100) NOT NULL,
+  teaching_activity_id BIGINT      NOT NULL,
+  employment_id       BIGINT       NOT NULL
+    REFERENCES employee(employment_id)
+    ON DELETE CASCADE,
+
+  -- FK ensures the activity exists for that instance
+  FOREIGN KEY (instance_id, teaching_activity_id)
+    REFERENCES planned_activity(instance_id, teaching_activity_id)
+    ON DELETE CASCADE,
+
+  -- One row per (instance, activity, teacher)
+  PRIMARY KEY (instance_id, teaching_activity_id, employment_id)
 );
 
 -- ---------- job_title ----------
--- Your model box shows:
---   job_title UNIQUE VARCHAR(500) NOT NULL
---   employment_id UNIQUE NOT NULL VARCHAR(500) (FK)
--- Interpreted as a 1:1 mapping (one title text per employee; titles are unique strings).
 DROP TABLE IF EXISTS job_title CASCADE;
 CREATE TABLE job_title (
-  job_title     VARCHAR(500) UNIQUE NOT NULL,
+  job_title     VARCHAR(500) UNIQUE NOT NULL PRIMARY KEY,
   employment_id BIGINT UNIQUE NOT NULL
                   REFERENCES employee(employment_id)
-                  ON DELETE CASCADE                              -- diagram note near this box: CASCADE
+                  ON DELETE CASCADE                              
 );
