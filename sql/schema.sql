@@ -72,7 +72,7 @@ CREATE TABLE teaching_activity (
 DROP TABLE IF EXISTS course_layout CASCADE;
 CREATE TABLE course_layout (
   id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,                          
-  course_code   VARCHAR(6) UNIQUE NOT NULL,                     
+  course_code   VARCHAR(6) NOT NULL,                     
   course_name   VARCHAR(500),
   min_students  INT,
   max_students  INT,
