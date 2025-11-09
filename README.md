@@ -21,12 +21,21 @@ What the System Manages
 ### Core Entities
 
 **person** : Natural persons (first/last name, phone, address, personal number)
+
 **employee** : Contract-based employees linked to person (skill level, salary, manager relationship)
+
 **department** & **affiliations** : Employees belong to one or more departments 
-**teaching\_activity** : Types of teaching work: Lecture, Lab, Tutorial, Seminar, Administration, Examination (each with prep-time factor)**course\_layout** : Versioned definition of a course (code, name, HP, min/max students, timestamps, is\_current)
+
+**teaching\_activity** : Types of teaching work: Lecture, Lab, Tutorial, Seminar, Administration, Examination (each with prep-time factor)
+
+**course\_layout** : Versioned definition of a course (code, name, HP, min/max students, timestamps, is\_current)
+
 **course\_instance** : Concrete course delivery (year, period, students) bound to a specific layout version
+
 **planned\_activity** : Per instance: which activities and how many hours (linked to teaching\_activity by ID)
+
 **allocations** : Which employee is assigned to which planned activity and course instance
+
 **job\_title** : One-to-one relationship for each employee’s title
 
 Key Business Rules
