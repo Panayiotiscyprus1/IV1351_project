@@ -127,6 +127,9 @@ FROM course_instance JOIN course_layout ON course_instance.course_layout_id = co
 -- Planned activities & allocations -- 
 SELECT * FROM planned_activity ORDER BY instance_id, teaching_activity_id; 
 SELECT * FROM allocations ORDER BY instance_id, teaching_activity_id, employment_id;
+
+SELECT instance_id, planned_hours, activity_name, factor FROM planned_activity JOIN 
+teaching_activity ON teaching_activity.id = planned_activity.teaching_activity_id ORDER BY instance_id, teaching_activity_id;
 ```
 
 **Authors:** Panayiotis Charalambous, Milana Timonina, Alex Ambersky
