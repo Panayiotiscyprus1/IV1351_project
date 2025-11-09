@@ -1,8 +1,8 @@
-🎓 IV1351 Project 
-=================
+IV1351 Project 
+===============
 
-📘 Overview
------------
+Overview
+---------
 
 The system models and enforces academic scheduling and allocation rules, providing:
 
