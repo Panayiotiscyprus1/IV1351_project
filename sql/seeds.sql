@@ -43,7 +43,8 @@ CREATE TABLE stage.department (
 -- Job title lookup (list of distinct titles)
 DROP TABLE IF EXISTS stage.job_title CASCADE;
 CREATE TABLE stage.job_title (
-  job_title VARCHAR(500)
+  employment_id VARCHAR(500),
+  job_title     VARCHAR(500)
 );
 
 -- Teaching activity lookup

@@ -130,6 +130,20 @@ SELECT * FROM allocations ORDER BY instance_id, teaching_activity_id, employment
 
 SELECT instance_id, planned_hours, activity_name, factor FROM planned_activity JOIN 
 teaching_activity ON teaching_activity.id = planned_activity.teaching_activity_id ORDER BY instance_id, teaching_activity_id;
+
+-- Spot check employees resolved to dept & title
+SELECT e.employment_id, p.first_name, p.last_name, d.department_name, jt.job_title FROM employee e
+JOIN person p   ON p.id = e.person_id JOIN department d ON d.id = e.department_id JOIN job_title jt ON jt.id = e.job_title_id
+ORDER BY e.employment_id;
+
+-- Planned activities per instance
+SELECT ci.instance_id, ta.activity_name, pa.planned_hours FROM planned_activity pa JOIN teaching_activity ta 
+ON ta.id = pa.teaching_activity_id JOIN course_instance ci   ON ci.instance_id = pa.instance_id
+ORDER BY ci.instance_id, ta.activity_name;
+
+-- Allocations are consistent with planned_activity
+SELECT a.instance_id, ta.activity_name, a.employment_id FROM allocations a
+JOIN teaching_activity ta ON ta.id = a.teaching_activity_id ORDER BY a.instance_id, ta.activity_name, a.employment_id;
 ```
 
 **Authors:** Panayiotis Charalambous, Milana Timonina, Alex Ambersky

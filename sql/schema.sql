@@ -32,6 +32,12 @@ CREATE TABLE department (
   manager          VARCHAR(500)                                 
 );
 
+-- ---------- job_title ----------
+DROP TABLE IF EXISTS job_title CASCADE;
+CREATE TABLE job_title (
+  id        INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  job_title VARCHAR(500) UNIQUE NOT NULL
+);
 
 -- ---------- employee ----------
 DROP TABLE IF EXISTS employee CASCADE;
@@ -101,11 +107,4 @@ CREATE TABLE allocations (
   FOREIGN KEY (instance_id, teaching_activity_id) REFERENCES planned_activity(instance_id, teaching_activity_id) ON DELETE CASCADE,
   -- One row per (instance, activity, teacher)
   PRIMARY KEY (instance_id, teaching_activity_id, employment_id)
-);
-
--- ---------- job_title ----------
-DROP TABLE IF EXISTS job_title CASCADE;
-CREATE TABLE job_title (
-  id        INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  job_title VARCHAR(500) UNIQUE NOT NULL
 );
