@@ -1,6 +1,6 @@
-employment_id,personal_number,skill_level,salary,manager_employment_id,manager_name
-2001,199012010001,advanced,75000,,Ada Lovelace
-2002,198206230002,advanced,72000,2001,Ada Lovelace
-2003,198512150003,intermediate,62000,2001,Ada Lovelace
-2004,197312300004,advanced,70000,2001,Ada Lovelace
-2005,194001100005,beginner,48000,2004,Barbara Liskov
+employment_id,personal_number,department_name,job_title,skill_level,salary,manager_employment_id,manager_name
+E2025-001,199012010001,Computer Science,Professor,advanced,72000,,Karin Berg
+E2025-002,198507150002,Computer Science,Senior Lecturer,advanced,58000,E2025-001,
+E2025-003,197903220003,Mathematics,Senior Lecturer,intermediate,53000,,Olof Pettersson
+E2025-004,199511300004,Computer Science,Lecturer,beginner,42000,E2025-002,
+E2025-005,198302140005,Mathematics,Teaching Assistant,beginner,32000,E2025-003,
