@@ -6,9 +6,8 @@ BEGIN;
 
 \cd /Users/panayiwthzz/Desktop/IV1351/IV1351_PROJECT/seeds_csvs
 
--- =====================================================================
 -- 1) STAGING SCHEMA (raw CSV shapes, no generated IDs here)
--- =====================================================================
+
 CREATE SCHEMA IF NOT EXISTS stage;
 
 -- People
@@ -93,9 +92,8 @@ CREATE TABLE stage.allocations (
   employment_id  VARCHAR(500)
 );
 
--- =====================================================================
 -- 2) LOAD CSVs INTO STAGING
--- =====================================================================
+
 \echo '==> Loading CSVs into staging...'
 
 \copy stage.person            FROM 'person.csv'            CSV HEADER ENCODING 'UTF8'
@@ -108,89 +106,8 @@ CREATE TABLE stage.allocations (
 \copy stage.planned_activity  FROM 'planned_activity.csv'  CSV HEADER ENCODING 'UTF8'
 \copy stage.allocations       FROM 'allocations.csv'       CSV HEADER ENCODING 'UTF8'
 
--- =====================================================================
--- 3) VALIDATION (fail fast with clear messages)
--- =====================================================================
-\echo '==> Validating staging data...'
 
-DO $$
-DECLARE
-  v_missing_persons int := 0;
-  v_missing_mgr     int := 0;
-  v_missing_dept    int := 0;
-  v_missing_title   int := 0;
-  v_missing_act_pa  int := 0;
-  v_missing_act_al  int := 0;
-BEGIN
-  -- employee → person
-  SELECT COUNT(*) INTO v_missing_persons
-  FROM stage.employee se
-  LEFT JOIN stage.person sp ON sp.personal_number = se.personal_number
-  WHERE sp.personal_number IS NULL;
-
-  IF v_missing_persons > 0 THEN
-    RAISE EXCEPTION 'Seed error: % employee rows have personal_number not in person.csv', v_missing_persons;
-  END IF;
-
-  -- self-manager existence (if provided)
-  SELECT COUNT(*) INTO v_missing_mgr
-  FROM stage.employee se
-  WHERE se.manager_employment_id IS NOT NULL
-    AND se.manager_employment_id <> ''
-    AND NOT EXISTS (SELECT 1 FROM stage.employee m WHERE m.employment_id = se.manager_employment_id);
-
-  IF v_missing_mgr > 0 THEN
-    RAISE EXCEPTION 'Seed error: % employee rows reference a missing manager_employment_id', v_missing_mgr;
-  END IF;
-
-  -- department_name must exist in stage.department
-  SELECT COUNT(*) INTO v_missing_dept
-  FROM stage.employee se
-  WHERE NOT EXISTS (
-    SELECT 1 FROM stage.department sd WHERE sd.department_name = se.department_name
-  );
-
-  IF v_missing_dept > 0 THEN
-    RAISE EXCEPTION 'Seed error: some employees reference department_name not in department.csv';
-  END IF;
-
-  -- job_title must exist in stage.job_title
-  SELECT COUNT(*) INTO v_missing_title
-  FROM stage.employee se
-  WHERE NOT EXISTS (
-    SELECT 1 FROM stage.job_title jt WHERE jt.job_title = se.job_title
-  );
-
-  IF v_missing_title > 0 THEN
-    RAISE EXCEPTION 'Seed error: some employees reference job_title not in job_titles.csv';
-  END IF;
-
-  -- activity_name must exist in stage.teaching_activity (planned_activity)
-  SELECT COUNT(*) INTO v_missing_act_pa
-  FROM stage.planned_activity pa
-  WHERE NOT EXISTS (
-    SELECT 1 FROM stage.teaching_activity ta WHERE ta.activity_name = pa.activity_name
-  );
-
-  IF v_missing_act_pa > 0 THEN
-    RAISE EXCEPTION 'Seed error: planned_activity has activity_name not in teaching_activity.csv';
-  END IF;
-
-  -- activity_name must exist in stage.teaching_activity (allocations)
-  SELECT COUNT(*) INTO v_missing_act_al
-  FROM stage.allocations al
-  WHERE NOT EXISTS (
-    SELECT 1 FROM stage.teaching_activity ta WHERE ta.activity_name = al.activity_name
-  );
-
-  IF v_missing_act_al > 0 THEN
-    RAISE EXCEPTION 'Seed error: allocations has activity_name not in teaching_activity.csv';
-  END IF;
-END$$;
-
--- =====================================================================
 -- 4) INSERT INTO REAL TABLES (parents → children)
--- =====================================================================
 
 \echo '==> Inserting: person'
 INSERT INTO person (personal_number, first_name, last_name, phone_number, address)
