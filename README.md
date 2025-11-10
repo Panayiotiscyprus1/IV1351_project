@@ -24,7 +24,7 @@ What the System Manages
 
 **employee** : Contract-based employees linked to person (skill level, salary, manager relationship)
 
-**department** & **affiliations** : Employees belong to one or more departments 
+**department**: Employees belong to exactly one department 
 
 **teaching\_activity** : Types of teaching work: Lecture, Lab, Tutorial, Seminar, Administration, Examination (each with prep-time factor)
 
