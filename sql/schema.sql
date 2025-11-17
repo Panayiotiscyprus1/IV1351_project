@@ -108,3 +108,18 @@ CREATE TABLE allocations (
   -- One row per (instance, activity, teacher)
   PRIMARY KEY (instance_id, teaching_activity_id, employment_id)
 );
+
+-- ---------- skill ----------
+DROP TABLE IF EXISTS skill CASCADE;
+CREATE TABLE skill (
+  id   INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name VARCHAR(200) UNIQUE NOT NULL
+);
+
+-- ---------- employee_skills (cross table) ----------
+DROP TABLE IF EXISTS employee_skills CASCADE;
+CREATE TABLE employee_skills (
+  employment_id VARCHAR(500) NOT NULL REFERENCES employee(employment_id) ON DELETE CASCADE,
+  skill_id INT NOT NULL REFERENCES skill(id) ON DELETE RESTRICT,
+  PRIMARY KEY (employment_id, skill_id)
+);

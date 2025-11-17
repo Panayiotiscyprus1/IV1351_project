@@ -4,7 +4,7 @@
 
 BEGIN;
 
-\cd /Users/panayiwthzz/Desktop/IV1351/IV1351_PROJECT/seeds_csvs
+\cd /Users/panayiwthzz/IV1351_project/seeds_csvs
 
 -- 1) STAGING SCHEMA (raw CSV shapes, no generated IDs here)
 
@@ -92,6 +92,19 @@ CREATE TABLE stage.allocations (
   employment_id  VARCHAR(500)
 );
 
+-- skill
+DROP TABLE IF EXISTS stage.skill CASCADE;
+CREATE TABLE stage.skill (
+  name VARCHAR(200)
+);
+
+-- employee_skills
+DROP TABLE IF EXISTS stage.employee_skills CASCADE;
+CREATE TABLE stage.employee_skills (
+  employment_id VARCHAR(500),
+  skill_id INT
+);
+
 -- 2) LOAD CSVs INTO STAGING
 
 \echo '==> Loading CSVs into staging...'
@@ -105,6 +118,8 @@ CREATE TABLE stage.allocations (
 \copy stage.course_instance   FROM 'course_instance.csv'   CSV HEADER ENCODING 'UTF8'
 \copy stage.planned_activity  FROM 'planned_activity.csv'  CSV HEADER ENCODING 'UTF8'
 \copy stage.allocations       FROM 'allocations.csv'       CSV HEADER ENCODING 'UTF8'
+\copy stage.skill             FROM 'skills.csv'            CSV HEADER ENCODING 'UTF8'
+\copy stage.employee_skills   FROM 'employee_skills.csv'   CSV HEADER ENCODING 'UTF8'
 
 
 -- 4) INSERT INTO REAL TABLES (parents → children)
@@ -175,6 +190,21 @@ FROM stage.allocations al
 JOIN teaching_activity ta ON ta.activity_name = al.activity_name
 JOIN planned_activity  pa ON pa.instance_id = al.instance_id
                          AND pa.teaching_activity_id = ta.id;
+
+
+\echo '==> Inserting: skill and employee_skills'
+
+INSERT INTO skill (name)
+SELECT DISTINCT name
+FROM stage.skill
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO employee_skills (employment_id, skill_id)
+SELECT ses.employment_id, ses.skill_id
+FROM stage.employee_skills ses
+JOIN employee e ON e.employment_id = ses.employment_id
+JOIN skill    s ON s.id = ses.skill_id
+ON CONFLICT (employment_id, skill_id) DO NOTHING;
 
 COMMIT;
 

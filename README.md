@@ -144,6 +144,10 @@ ORDER BY ci.instance_id, ta.activity_name;
 -- Allocations are consistent with planned_activity
 SELECT a.instance_id, ta.activity_name, a.employment_id FROM allocations a
 JOIN teaching_activity ta ON ta.id = a.teaching_activity_id ORDER BY a.instance_id, ta.activity_name, a.employment_id;
+
+-- Skills per employment_id
+SELECT e.employment_id, s.name AS skill_name FROM employee_skills es JOIN employee e 
+ON e.employment_id = es.employment_id JOIN skill s    ON s.id = es.skill_id ORDER BY e.employment_id, s.name;
 ```
 
 **Authors:** Panayiotis Charalambous, Milana Timonina, Alex Ambersky
