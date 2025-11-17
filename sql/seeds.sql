@@ -28,8 +28,7 @@ CREATE TABLE stage.employee (
   job_title              VARCHAR(500),     
   skill_level            skill_level_t,
   salary                 NUMERIC(10,2),
-  manager_employment_id  VARCHAR(500),     
-  manager_name           VARCHAR(500)
+  manager_employment_id  VARCHAR(500)  
 );
 
 -- Departments
@@ -167,14 +166,13 @@ FROM stage.planned_activity pa
 JOIN teaching_activity ta ON ta.activity_name = pa.activity_name;
 
 \echo '==> Inserting: employee (resolve dept/title by name, person by personal_number)'
-INSERT INTO employee (employment_id, person_id, skill_level, salary, manager_name,
+INSERT INTO employee (employment_id, person_id, skill_level, salary,
                       employment_id_manager, department_id, job_title_id)
 SELECT
   se.employment_id,
   p.id,
   se.skill_level,
   se.salary,
-  NULLIF(se.manager_name,''),
   NULLIF(se.manager_employment_id,''),
   d.id,
   jt.id

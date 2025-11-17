@@ -45,7 +45,6 @@ CREATE TABLE employee (
   employment_id          VARCHAR(500) UNIQUE NOT NULL PRIMARY KEY,   
   skill_level            skill_level_t,                               
   salary                 NUMERIC(10,2),
-  manager_name           VARCHAR(500),
   employment_id_manager  VARCHAR(500) REFERENCES employee(employment_id) ON DELETE SET NULL,
   person_id              INT NOT NULL UNIQUE REFERENCES person(id) ON DELETE CASCADE,
   department_id          INT NOT NULL REFERENCES department(id) ON DELETE RESTRICT,

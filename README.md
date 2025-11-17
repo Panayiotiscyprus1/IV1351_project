@@ -148,6 +148,12 @@ JOIN teaching_activity ta ON ta.id = a.teaching_activity_id ORDER BY a.instance_
 -- Skills per employment_id
 SELECT e.employment_id, s.name AS skill_name FROM employee_skills es JOIN employee e 
 ON e.employment_id = es.employment_id JOIN skill s    ON s.id = es.skill_id ORDER BY e.employment_id, s.name;
+
+-- employee and there manager
+SELECT e.employment_id, p.first_name  AS employee_first_name, p.last_name   AS employee_last_name,
+  m.employment_id AS manager_employment_id, mp.first_name AS manager_first_name, mp.last_name  AS manager_last_name
+FROM employee e JOIN person   p  ON p.id = e.person_id LEFT JOIN employee m  ON m.employment_id = e.employment_id_manager
+LEFT JOIN person   mp ON mp.id = m.person_id ORDER BY p.last_name, p.first_name;
 ```
 
 **Authors:** Panayiotis Charalambous, Milana Timonina, Alex Ambersky
