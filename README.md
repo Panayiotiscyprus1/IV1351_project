@@ -122,7 +122,7 @@ SELECT course_code, course_name, hp, is_current, created_at FROM course_layout O
 
 SELECT instance_id, study_year, study_period, course_layout_id FROM course_instance ORDER BY instance_id;
 
-SELECT instance_id, study_year, study_period, course_layout_id, course_code 
+SELECT instance_id, study_year, study_period, course_layout_id, course_code, is_current
 FROM course_instance JOIN course_layout ON course_instance.course_layout_id = course_layout.id ORDER BY instance_id;
 
 -- Planned activities & allocations -- 

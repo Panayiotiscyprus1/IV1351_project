@@ -61,21 +61,16 @@ BEGIN
     AND ci2.study_year   = v_year
     AND ci2.study_period = v_period;
 
-  ---------------------------------------------------------------------------
-  -- 3) If the teacher already has 4 instances in this (year, period), reject.
-  --    The trigger is BEFORE INSERT, so at this moment v_count reflects the
-  --    count *before* adding NEW; if v_count is already 4, inserting NEW would
-  --    make it 5, which must be disallowed.
-  ---------------------------------------------------------------------------
+  -- 3) If the count is already 4 or more, reject the insert with an error.
+
   IF v_count >= 4 THEN
     RAISE EXCEPTION
       'Employee % already has 4 course instances in % %',
       NEW.employment_id, v_period, v_year;
   END IF;
 
-  ---------------------------------------------------------------------------
   -- 4) Otherwise accept the row (the insert proceeds).
-  ---------------------------------------------------------------------------
+ 
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
