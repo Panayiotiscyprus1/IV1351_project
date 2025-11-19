@@ -119,6 +119,7 @@ SELECT * FROM teaching_activity ORDER BY id;
 
 -- Course layouts & instances --
 SELECT course_code, course_name, hp, is_current, created_at FROM course_layout ORDER BY course_code, created_at; 
+
 SELECT instance_id, study_year, study_period, course_layout_id FROM course_instance ORDER BY instance_id;
 
 SELECT instance_id, study_year, study_period, course_layout_id, course_code 

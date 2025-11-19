@@ -10,3 +10,11 @@ instance_id,activity_name,planned_hours
 2025-50413,Seminar,64
 2025-52000,Lecture,30
 2025-52000,Lab,20
+2025-50273,Administration,5
+2025-50999,Administration,14
+2025-50413,Administration,18
+2025-52000,Administration,8
+2025-50273,Examination,10
+2025-50999,Examination,19
+2025-50413,Examination,23
+2025-52000,Examination,25

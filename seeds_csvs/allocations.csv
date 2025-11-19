@@ -11,3 +11,12 @@ instance_id,activity_name,employment_id
 2025-52000,Lecture,E2025-001
 2025-52000,Lab,E2025-004
 2025-52000,Lab,E2025-002
+2025-50273,Administration,E2025-001
+2025-50999,Administration,E2025-004
+2025-50413,Administration,E2025-005
+2025-52000,Administration,E2025-002
+2025-50273,Examination,E2025-001
+2025-50999,Examination,E2025-004
+2025-50413,Examination,E2025-005
+2025-52000,Examination,E2025-001
+2025-52000,Examination,E2025-004
