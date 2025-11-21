@@ -16,9 +16,16 @@ CREATE TABLE stage.person (
   personal_number BIGINT,
   first_name      VARCHAR(500),
   last_name       VARCHAR(500),
-  phone_number    VARCHAR(50),
   address         VARCHAR(500)
 );
+
+-- Phone_number
+DROP TABLE IF EXISTS stage.phone_number CASCADE;
+CREATE TABLE stage.phone_number (
+  phone_number VARCHAR(50),
+  person_id    INT
+);
+
 -- Employees
 DROP TABLE IF EXISTS stage.employee CASCADE;
 CREATE TABLE stage.employee (
@@ -27,8 +34,15 @@ CREATE TABLE stage.employee (
   department_name        VARCHAR(500),     
   job_title              VARCHAR(500),     
   skill_level            skill_level_t,
-  salary                 NUMERIC(10,2),
   manager_employment_id  VARCHAR(500)  
+);
+
+DROP TABLE IF EXISTS stage.salary CASCADE;
+CREATE TABLE stage.salary (
+  employment_id VARCHAR(500),
+  salary        NUMERIC(10,2),
+  created_at    TIMESTAMP,
+  is_current    BOOLEAN
 );
 
 -- Departments
@@ -109,7 +123,9 @@ CREATE TABLE stage.employee_skills (
 \echo '==> Loading CSVs into staging...'
 
 \copy stage.person            FROM 'person.csv'            CSV HEADER ENCODING 'UTF8'
+\copy stage.phone_number      FROM 'phone_number.csv'      CSV HEADER ENCODING 'UTF8'
 \copy stage.employee          FROM 'employee.csv'          CSV HEADER ENCODING 'UTF8'
+\copy stage.salary            FROM 'salary.csv'            CSV HEADER ENCODING 'UTF8'
 \copy stage.department        FROM 'department.csv'        CSV HEADER ENCODING 'UTF8'
 \copy stage.job_title         FROM 'job_titles.csv'        CSV HEADER ENCODING 'UTF8'
 \copy stage.teaching_activity FROM 'teaching_activity.csv' CSV HEADER ENCODING 'UTF8'
@@ -124,9 +140,14 @@ CREATE TABLE stage.employee_skills (
 -- 4) INSERT INTO REAL TABLES (parents → children)
 
 \echo '==> Inserting: person'
-INSERT INTO person (personal_number, first_name, last_name, phone_number, address)
-SELECT DISTINCT personal_number, first_name, last_name, phone_number, address
+INSERT INTO person (personal_number, first_name, last_name, address)
+SELECT DISTINCT personal_number, first_name, last_name, address
 FROM stage.person;
+
+\echo '==> Inserting: phone_number'
+INSERT INTO phone_number (phone_number, person_id)
+SELECT DISTINCT phone_number, person_id
+FROM stage.phone_number;
 
 \echo '==> Inserting: department'
 INSERT INTO department (department_name, manager)
@@ -166,13 +187,12 @@ FROM stage.planned_activity pa
 JOIN teaching_activity ta ON ta.activity_name = pa.activity_name;
 
 \echo '==> Inserting: employee (resolve dept/title by name, person by personal_number)'
-INSERT INTO employee (employment_id, person_id, skill_level, salary,
+INSERT INTO employee (employment_id, person_id, skill_level,
                       employment_id_manager, department_id, job_title_id)
 SELECT
   se.employment_id,
   p.id,
   se.skill_level,
-  se.salary,
   NULLIF(se.manager_employment_id,''),
   d.id,
   jt.id
@@ -180,6 +200,11 @@ FROM stage.employee se
 JOIN person p       ON p.personal_number  = se.personal_number
 JOIN department d   ON d.department_name  = se.department_name
 JOIN job_title jt   ON jt.job_title       = se.job_title;
+
+\echo '==> Inserting salaries into salary'
+INSERT INTO salary (employment_id, salary, created_at, is_current)
+SELECT s.employment_id, s.salary, COALESCE(s.created_at, now()), COALESCE(s.is_current, TRUE)
+FROM stage.salary s;
 
 \echo '==> Inserting: allocations (validated against planned_activity)'
 INSERT INTO allocations (instance_id, teaching_activity_id, employment_id)

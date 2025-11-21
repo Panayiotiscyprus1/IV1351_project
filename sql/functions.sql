@@ -14,7 +14,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- B) Enforce: A TEACHER MUST NOT BE ALLOCATED MORE THAN FOUR DIFFERENT INSTANCES
+-- B) When inserting a new salary for an employee with is_current = TRUE
+-- Ensure only one row per employee has is_current = TRUE
+CREATE OR REPLACE FUNCTION enforce_single_current_salary()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.is_current THEN
+    -- Mark any existing current salary for this employee as not current
+    UPDATE salary
+      SET is_current = FALSE
+    WHERE employment_id = NEW.employment_id
+      AND is_current = TRUE;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- C) Enforce: A TEACHER MUST NOT BE ALLOCATED MORE THAN FOUR DIFFERENT INSTANCES
 --    SIMULTANEOUSLY DURING A PARTICULAR PERIOD (same year + period).
 
 --  - allocations rows are inserted per teacher *and* (instance, activity).

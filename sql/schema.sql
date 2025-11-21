@@ -19,9 +19,16 @@ CREATE TABLE person (
   id               INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,                        
   personal_number  BIGINT UNIQUE NOT NULL,                          
   first_name       VARCHAR(500),
-  last_name        VARCHAR(500),
-  phone_number     VARCHAR(50),                           
+  last_name        VARCHAR(500),                         
   address          VARCHAR(500)
+);
+
+-- ---------- phone_number ----------
+DROP TABLE IF EXISTS phone_number CASCADE;
+CREATE TABLE phone_number (
+  id           INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  phone_number VARCHAR(50) NOT NULL,
+  person_id    INT NOT NULL REFERENCES person(id) ON DELETE CASCADE
 );
 
 -- ---------- department ----------
@@ -44,13 +51,22 @@ DROP TABLE IF EXISTS employee CASCADE;
 CREATE TABLE employee (
   employment_id          VARCHAR(500) UNIQUE NOT NULL PRIMARY KEY,   
   skill_level            skill_level_t,                               
-  salary                 NUMERIC(10,2),
   employment_id_manager  VARCHAR(500) REFERENCES employee(employment_id) ON DELETE SET NULL,
   person_id              INT NOT NULL UNIQUE REFERENCES person(id) ON DELETE CASCADE,
   department_id          INT NOT NULL REFERENCES department(id) ON DELETE RESTRICT,
   job_title_id           INT NOT NULL REFERENCES job_title(id) ON DELETE RESTRICT
 );
 
+-- Salary history (versioned) for each employee
+DROP TABLE IF EXISTS salary CASCADE;
+CREATE TABLE salary (
+  id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  employment_id VARCHAR(500) NOT NULL
+      REFERENCES employee(employment_id) ON DELETE CASCADE,
+  salary        NUMERIC(10,2) NOT NULL CHECK (salary >= 0),
+  created_at    TIMESTAMP NOT NULL DEFAULT now(),
+  is_current    BOOLEAN NOT NULL DEFAULT TRUE
+);
 
 -- ---------- teaching_activity ----------
 DROP TABLE IF EXISTS teaching_activity CASCADE;

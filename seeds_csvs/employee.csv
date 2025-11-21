@@ -1,6 +1,6 @@
-employment_id,personal_number,department_name,job_title,skill_level,salary,manager_employment_id
-E2025-001,199012010001,Computer Science,Professor,advanced,72000,
-E2025-002,198507150002,Computer Science,Senior Lecturer,advanced,58000,E2025-001
-E2025-003,197903220003,Mathematics,Senior Lecturer,intermediate,53000,
-E2025-004,199511300004,Computer Science,Lecturer,beginner,42000,E2025-002
-E2025-005,198302140005,Mathematics,Teaching Assistant,beginner,32000,E2025-003
+employment_id,personal_number,department_name,job_title,skill_level,manager_employment_id
+E2025-001,199012010001,Computer Science,Professor,advanced,
+E2025-002,198507150002,Computer Science,Senior Lecturer,advanced,E2025-001
+E2025-003,197903220003,Mathematics,Senior Lecturer,intermediate,
+E2025-004,199511300004,Computer Science,Lecturer,beginner,E2025-002
+E2025-005,198302140005,Mathematics,Teaching Assistant,beginner,E2025-003

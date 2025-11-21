@@ -1,6 +1,6 @@
-personal_number,first_name,last_name,phone_number,address
-199012010001,Ada,Lovelace,+46-700-111111,"Sveavägen 44, 111 34 Stockholm"
-198507150002,Nils,Holm,+46-700-222222,"Vasagatan 10, 111 20 Stockholm"
-197903220003,Sara,Lind,+46-700-333333,"Hornsgatan 64, 118 21 Stockholm"
-199511300004,Erik,Nyberg,+46-700-444444,"Birger Jarlsgatan 75, 113 56 Stockholm"
-198302140005,Elin,Åkesson,+46-700-555555,"Södermannagatan 12, 116 23 Stockholm"
+personal_number,first_name,last_name,address
+199012010001,Ada,Lovelace,"Sveavägen 44, 111 34 Stockholm"
+198507150002,Nils,Holm,"Vasagatan 10, 111 20 Stockholm"
+197903220003,Sara,Lind,"Hornsgatan 64, 118 21 Stockholm"
+199511300004,Erik,Nyberg,"Birger Jarlsgatan 75, 113 56 Stockholm"
+198302140005,Elin,Åkesson,"Södermannagatan 12, 116 23 Stockholm"
