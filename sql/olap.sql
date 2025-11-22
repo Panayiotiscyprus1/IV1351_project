@@ -1,11 +1,10 @@
 -- All OLAP (task2) queries
 
-\echo 'Running Task 2 OLAP queries...'
-
 -- All four queries revolve around “hours * factor” for activities and teachers, so we make
 -- one reusable view (as suggested in tips for seminar 2) to have everything in place,
 -- and our OLAP queries retrieve data from there.
 
+\echo 'Creating helper view'
 -- View: per-allocation, factor-adjusted hours, enriched with course & teacher info
 CREATE OR REPLACE VIEW v_allocation_hours AS
 SELECT ci.instance_id, cl.course_code, cl.hp, ci.study_year, ci.study_period, ci.num_students,
