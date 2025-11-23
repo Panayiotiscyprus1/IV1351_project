@@ -1,0 +1,65 @@
+After running EXPLAIN ANALYZE for query 4:
+
+                                                                                     QUERY PLAN                                                                                     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=34.68..34.69 rows=1 width=560) (actual time=1.445..1.450 rows=3.00 loops=1)
+   Sort Key: (count(DISTINCT ci.instance_id)) DESC, ((((p.first_name)::text || ' '::text) || (p.last_name)::text))
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=53
+   ->  GroupAggregate  (cost=34.64..34.67 rows=1 width=560) (actual time=0.931..0.938 rows=3.00 loops=1)
+         Group Key: a.employment_id, ((((p.first_name)::text || ' '::text) || (p.last_name)::text))
+         Filter: (count(DISTINCT ci.instance_id) > 0)
+         Buffers: shared hit=53
+         ->  Sort  (cost=34.64..34.65 rows=1 width=770) (actual time=0.911..0.914 rows=5.00 loops=1)
+               Sort Key: a.employment_id, ((((p.first_name)::text || ' '::text) || (p.last_name)::text)), ci.instance_id
+               Sort Method: quicksort  Memory: 25kB
+               Buffers: shared hit=53
+               ->  Nested Loop  (cost=4.88..34.63 rows=1 width=770) (actual time=0.809..0.873 rows=5.00 loops=1)
+                     Buffers: shared hit=53
+                     ->  Nested Loop  (cost=4.73..34.31 rows=1 width=1778) (actual time=0.728..0.784 rows=5.00 loops=1)
+                           Buffers: shared hit=43
+                           ->  Nested Loop Left Join  (cost=4.59..26.02 rows=1 width=1782) (actual time=0.686..0.733 rows=5.00 loops=1)
+                                 Buffers: shared hit=33
+                                 ->  Nested Loop  (cost=4.16..24.17 rows=1 width=452) (actual time=0.208..0.216 rows=5.00 loops=1)
+                                       Buffers: shared hit=3
+                                       ->  Seq Scan on course_instance ci  (cost=0.00..14.65 rows=1 width=226) (actual time=0.114..0.118 rows=1.00 loops=1)
+                                             Filter: ((study_year = 2025) AND (study_period = 'P2'::study_period_t))
+                                             Rows Removed by Filter: 3
+                                             Buffers: shared hit=1
+                                       ->  Bitmap Heap Scan on planned_activity pa  (cost=4.16..9.50 rows=2 width=226) (actual time=0.083..0.086 rows=5.00 loops=1)
+                                             Recheck Cond: ((ci.instance_id)::text = (instance_id)::text)
+                                             Heap Blocks: exact=1
+                                             Buffers: shared hit=2
+                                             ->  Bitmap Index Scan on planned_activity_pkey  (cost=0.00..4.16 rows=2 width=0) (actual time=0.054..0.054 rows=5.00 loops=1)
+                                                   Index Cond: ((instance_id)::text = (ci.instance_id)::text)
+                                                   Index Searches: 1
+                                                   Buffers: shared hit=1
+                                 ->  Nested Loop Left Join  (cost=0.43..1.84 rows=1 width=1774) (actual time=0.101..0.102 rows=1.00 loops=5)
+                                       Buffers: shared hit=30
+                                       ->  Index Only Scan using allocations_pkey on allocations a  (cost=0.14..0.32 rows=1 width=742) (actual time=0.068..0.069 rows=1.00 loops=5)
+                                             Index Cond: ((instance_id = (pa.instance_id)::text) AND (teaching_activity_id = pa.teaching_activity_id))
+                                             Heap Fetches: 5
+                                             Index Searches: 5
+                                             Buffers: shared hit=10
+                                       ->  Nested Loop Left Join  (cost=0.28..1.51 rows=1 width=1548) (actual time=0.031..0.031 rows=1.00 loops=5)
+                                             Buffers: shared hit=20
+                                             ->  Index Scan using employee_pkey on employee e  (cost=0.14..0.64 rows=1 width=520) (actual time=0.018..0.018 rows=1.00 loops=5)
+                                                   Index Cond: ((employment_id)::text = (a.employment_id)::text)
+                                                   Index Searches: 5
+                                                   Buffers: shared hit=10
+                                             ->  Index Scan using person_pkey on person p  (cost=0.14..0.84 rows=1 width=1036) (actual time=0.011..0.011 rows=1.00 loops=5)
+                                                   Index Cond: (id = e.person_id)
+                                                   Index Searches: 5
+                                                   Buffers: shared hit=10
+                           ->  Index Only Scan using course_layout_pkey on course_layout cl  (cost=0.14..8.16 rows=1 width=4) (actual time=0.009..0.009 rows=1.00 loops=5)
+                                 Index Cond: (id = ci.course_layout_id)
+                                 Heap Fetches: 5
+                                 Index Searches: 5
+                                 Buffers: shared hit=10
+                     ->  Index Only Scan using teaching_activity_pkey on teaching_activity ta  (cost=0.14..0.32 rows=1 width=4) (actual time=0.016..0.016 rows=1.00 loops=5)
+                           Index Cond: (id = pa.teaching_activity_id)
+                           Heap Fetches: 5
+                           Index Searches: 5
+                           Buffers: shared hit=10
+ Planning Time: 4.182 ms
+ Execution Time: 2.124 ms
