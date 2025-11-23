@@ -1,0 +1,9 @@
+                                               QUERY PLAN                                               
+--------------------------------------------------------------------------------------------------------
+ Seq Scan on query1  (cost=0.00..12.00 rows=200 width=374) (actual time=0.055..0.058 rows=4.00 loops=1)
+   Buffers: shared hit=1
+ Planning Time: 0.216 ms
+ Execution Time: 0.110 ms
+
+
+ FOR JUST SELECT * FROM "query1"; WHERE "query1" IS A MATERIALIZED VIEW

@@ -1,0 +1,45 @@
+                                                                                QUERY PLAN                                                                                 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=41.31..41.56 rows=2 width=374) (actual time=3.087..3.135 rows=4.00 loops=1)
+   Group Key: cl.course_code, ci.instance_id, cl.hp
+   Buffers: shared hit=63
+   ->  Sort  (cost=41.31..41.31 rows=2 width=786) (actual time=2.590..2.599 rows=18.00 loops=1)
+         Sort Key: cl.course_code, ci.instance_id, cl.hp
+         Sort Method: quicksort  Memory: 26kB
+         Buffers: shared hit=63
+         ->  Nested Loop Left Join  (cost=26.01..41.30 rows=2 width=786) (actual time=1.990..2.132 rows=18.00 loops=1)
+               Buffers: shared hit=63
+               ->  Nested Loop  (cost=25.87..40.64 rows=2 width=1012) (actual time=1.587..1.660 rows=15.00 loops=1)
+                     Buffers: shared hit=33
+                     ->  Hash Join  (cost=25.72..40.00 rows=2 width=496) (actual time=1.409..1.437 rows=15.00 loops=1)
+                           Hash Cond: ((pa.instance_id)::text = (ci.instance_id)::text)
+                           Buffers: shared hit=3
+                           ->  Seq Scan on planned_activity pa  (cost=0.00..13.10 rows=310 width=234) (actual time=0.471..0.476 rows=15.00 loops=1)
+                                 Buffers: shared hit=1
+                           ->  Hash  (cost=25.70..25.70 rows=2 width=262) (actual time=0.879..0.882 rows=4.00 loops=1)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                 Buffers: shared hit=2
+                                 ->  Hash Join  (cost=13.90..25.70 rows=2 width=262) (actual time=0.551..0.561 rows=4.00 loops=1)
+                                       Hash Cond: (cl.id = ci.course_layout_id)
+                                       Buffers: shared hit=2
+                                       ->  Seq Scan on course_layout cl  (cost=0.00..11.30 rows=130 width=40) (actual time=0.051..0.052 rows=3.00 loops=1)
+                                             Buffers: shared hit=1
+                                       ->  Hash  (cost=13.88..13.88 rows=2 width=230) (actual time=0.418..0.419 rows=4.00 loops=1)
+                                             Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                             Buffers: shared hit=1
+                                             ->  Seq Scan on course_instance ci  (cost=0.00..13.88 rows=2 width=230) (actual time=0.040..0.045 rows=4.00 loops=1)
+                                                   Filter: (study_year = 2025)
+                                                   Buffers: shared hit=1
+                     ->  Index Scan using teaching_activity_pkey on teaching_activity ta  (cost=0.14..0.32 rows=1 width=520) (actual time=0.013..0.013 rows=1.00 loops=15)
+                           Index Cond: (id = pa.teaching_activity_id)
+                           Index Searches: 15
+                           Buffers: shared hit=30
+               ->  Index Only Scan using allocations_pkey on allocations a  (cost=0.14..0.32 rows=1 width=742) (actual time=0.029..0.030 rows=1.20 loops=15)
+                     Index Cond: ((instance_id = (pa.instance_id)::text) AND (teaching_activity_id = pa.teaching_activity_id))
+                     Heap Fetches: 18
+                     Index Searches: 15
+                     Buffers: shared hit=30
+ Planning Time: 6.870 ms
+ Execution Time: 4.023 ms
+(41 rows)
+

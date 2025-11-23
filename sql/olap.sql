@@ -22,6 +22,8 @@ LEFT JOIN person          p  ON p.id = e.person_id;
 
 
 \echo 'running query 1'
+DROP MATERIALIZED VIEW IF EXISTS "query1";
+CREATE MATERIALIZED VIEW "query1" AS
 SELECT course_code AS "Course Code", instance_id AS "Course Instance ID", hp AS "HP", study_period AS "Period", num_students AS "Students",
     SUM(CASE WHEN activity_name = 'Lecture' THEN planned_hours ELSE 0 END) AS lecture_hours,
     SUM(CASE WHEN activity_name = 'Tutorial' THEN planned_hours ELSE 0 END) AS tutorial_hours,
@@ -41,7 +43,7 @@ SELECT course_code AS "Course Code", instance_id AS "Course Instance ID", hp AS 
 FROM v_allocation_hours WHERE study_year = 2025
 GROUP BY course_code, instance_id, hp, study_period, num_students ORDER BY course_code, instance_id;
 
-
+SELECT * FROM "query1";
 
 \echo 'running query 2'
 SELECT b.course_code AS "Course Code", b.instance_id AS "Course Instance ID", b.hp AS "HP",
@@ -73,6 +75,8 @@ ORDER BY b.teacher_name, b.course_code, b.instance_id;
 
 
 \echo 'running query 3'
+DROP MATERIALIZED VIEW IF EXISTS "query3";
+CREATE MATERIALIZED VIEW "query3" AS
 SELECT b.course_code AS "Course Code", b.instance_id AS "Course Instance ID", b.hp AS "HP", b.study_period AS "Period", b.teacher_name AS "Teacher Name",
   ROUND(b.lecture_hours::numeric,2) AS "Lecture Hours", ROUND(b.tutorial_hours::numeric,2) AS "Tutorial Hours", 
   ROUND(b.lab_hours::numeric,2) AS "Lab Hours", ROUND(b.seminar_hours::numeric,2) AS "Seminar Hours", 
@@ -96,6 +100,8 @@ FROM (
   GROUP BY course_code, instance_id, hp, study_period, teacher_name
 ) b
 ORDER BY b.teacher_name, b.course_code, b.instance_id;
+
+SELECT * FROM "query3";
 
 \echo 'running query 4'
 SELECT employment_id AS "Employment ID", teacher_name AS "Teacher's Name", study_period AS period, COUNT(DISTINCT instance_id) AS no_of_courses

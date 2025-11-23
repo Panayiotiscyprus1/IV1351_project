@@ -1,0 +1,69 @@
+                                                                                              QUERY PLAN                                                                                              
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=52.14..52.15 rows=1 width=1062) (actual time=0.671..0.677 rows=3.00 loops=1)
+   Sort Key: ((((p.first_name)::text || ' '::text) || (p.last_name)::text)), cl.course_code, ci.instance_id
+   Sort Method: quicksort  Memory: 25kB
+   Buffers: shared hit=74
+   ->  Nested Loop  (cost=42.99..52.13 rows=1 width=1062) (actual time=0.617..0.645 rows=3.00 loops=1)
+         Buffers: shared hit=74
+         ->  Nested Loop  (cost=42.85..51.17 rows=1 width=338) (actual time=0.528..0.546 rows=3.00 loops=1)
+               Buffers: shared hit=68
+               ->  GroupAggregate  (cost=42.71..42.78 rows=1 width=850) (actual time=0.514..0.525 rows=3.00 loops=1)
+                     Group Key: cl.course_code, cl.hp, ((((p.first_name)::text || ' '::text) || (p.last_name)::text)), a.employment_id
+                     Buffers: shared hit=62
+                     ->  Sort  (cost=42.71..42.71 rows=1 width=1342) (actual time=0.490..0.495 rows=5.00 loops=1)
+                           Sort Key: cl.course_code, cl.hp, ((((p.first_name)::text || ' '::text) || (p.last_name)::text)), a.employment_id
+                           Sort Method: quicksort  Memory: 25kB
+                           Buffers: shared hit=62
+                           ->  Nested Loop  (cost=1.01..42.70 rows=1 width=1342) (actual time=0.383..0.439 rows=5.00 loops=1)
+                                 Buffers: shared hit=62
+                                 ->  Nested Loop  (cost=0.86..41.94 rows=1 width=2564) (actual time=0.340..0.386 rows=5.00 loops=1)
+                                       Buffers: shared hit=52
+                                       ->  Nested Loop  (cost=0.72..33.66 rows=1 width=2036) (actual time=0.317..0.356 rows=5.00 loops=1)
+                                             Buffers: shared hit=42
+                                             ->  Nested Loop  (cost=0.57..25.38 rows=1 width=2004) (actual time=0.286..0.319 rows=5.00 loops=1)
+                                                   Buffers: shared hit=32
+                                                   ->  Nested Loop Left Join  (cost=0.43..17.20 rows=1 width=1774) (actual time=0.244..0.268 rows=5.00 loops=1)
+                                                         Buffers: shared hit=22
+                                                         ->  Index Only Scan using allocations_pkey on allocations a  (cost=0.14..8.16 rows=1 width=742) (actual time=0.159..0.163 rows=5.00 loops=1)
+                                                               Index Cond: (instance_id = '2025-50273'::text)
+                                                               Heap Fetches: 5
+                                                               Index Searches: 1
+                                                               Buffers: shared hit=2
+                                                         ->  Nested Loop Left Join  (cost=0.28..9.03 rows=1 width=1548) (actual time=0.019..0.019 rows=1.00 loops=5)
+                                                               Buffers: shared hit=20
+                                                               ->  Index Scan using employee_pkey on employee e_1  (cost=0.14..8.16 rows=1 width=520) (actual time=0.009..0.009 rows=1.00 loops=5)
+                                                                     Index Cond: ((employment_id)::text = (a.employment_id)::text)
+                                                                     Index Searches: 5
+                                                                     Buffers: shared hit=10
+                                                               ->  Index Scan using person_pkey on person p  (cost=0.14..0.84 rows=1 width=1036) (actual time=0.007..0.007 rows=1.00 loops=5)
+                                                                     Index Cond: (id = e_1.person_id)
+                                                                     Index Searches: 5
+                                                                     Buffers: shared hit=10
+                                                   ->  Index Scan using course_instance_pkey on course_instance ci  (cost=0.15..8.17 rows=1 width=230) (actual time=0.009..0.009 rows=1.00 loops=5)
+                                                         Index Cond: ((instance_id)::text = '2025-50273'::text)
+                                                         Filter: (study_year = 2025)
+                                                         Index Searches: 5
+                                                         Buffers: shared hit=10
+                                             ->  Index Scan using course_layout_pkey on course_layout cl  (cost=0.14..8.16 rows=1 width=40) (actual time=0.006..0.006 rows=1.00 loops=5)
+                                                   Index Cond: (id = ci.course_layout_id)
+                                                   Index Searches: 5
+                                                   Buffers: shared hit=10
+                                       ->  Index Scan using teaching_activity_pkey on teaching_activity ta  (cost=0.14..8.16 rows=1 width=528) (actual time=0.004..0.004 rows=1.00 loops=5)
+                                             Index Cond: (id = a.teaching_activity_id)
+                                             Index Searches: 5
+                                             Buffers: shared hit=10
+                                 ->  Index Scan using planned_activity_pkey on planned_activity pa  (cost=0.15..0.51 rows=1 width=234) (actual time=0.009..0.009 rows=1.00 loops=5)
+                                       Index Cond: (((instance_id)::text = '2025-50273'::text) AND (teaching_activity_id = ta.id))
+                                       Index Searches: 5
+                                       Buffers: shared hit=10
+               ->  Index Scan using employee_pkey on employee e  (cost=0.14..8.16 rows=1 width=520) (actual time=0.005..0.005 rows=1.00 loops=3)
+                     Index Cond: ((employment_id)::text = (a.employment_id)::text)
+                     Index Searches: 3
+                     Buffers: shared hit=6
+         ->  Index Scan using job_title_pkey on job_title jt  (cost=0.14..0.85 rows=1 width=520) (actual time=0.008..0.008 rows=1.00 loops=3)
+               Index Cond: (id = e.job_title_id)
+               Index Searches: 3
+               Buffers: shared hit=6
+ Planning Time: 2.059 ms
+ Execution Time: 1.110 ms
