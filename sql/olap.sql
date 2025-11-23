@@ -96,3 +96,11 @@ FROM (
   GROUP BY course_code, instance_id, hp, study_period, teacher_name
 ) b
 ORDER BY b.teacher_name, b.course_code, b.instance_id;
+
+\echo 'running query 4'
+SELECT employment_id AS "Employment ID", teacher_name AS "Teacher's Name", study_period AS period, COUNT(DISTINCT instance_id) AS no_of_courses
+FROM v_allocation_hours
+WHERE study_year = 2025 AND study_period = 'P2' -- current period here
+GROUP BY employment_id, teacher_name, study_period
+HAVING COUNT(DISTINCT instance_id) > 0  -- this is our threshold N
+ORDER BY no_of_courses DESC, teacher_name;
