@@ -21,6 +21,57 @@ LEFT JOIN employee        e  ON e.employment_id = a.employment_id
 LEFT JOIN person          p  ON p.id = e.person_id;
 
 
+\echo 'running query 1'
+SELECT course_code AS "Course Code", instance_id AS "Course Instance ID", hp AS "HP", study_period AS "Period", num_students AS "Students",
+    SUM(CASE WHEN activity_name = 'Lecture' THEN planned_hours ELSE 0 END) AS lecture_hours,
+    SUM(CASE WHEN activity_name = 'Tutorial' THEN planned_hours ELSE 0 END) AS tutorial_hours,
+    SUM(CASE WHEN activity_name = 'Lab' THEN planned_hours ELSE 0 END) AS lab_hours,
+    SUM(CASE WHEN activity_name = 'Seminar' THEN planned_hours ELSE 0 END) AS seminar_hours,
+    SUM(CASE WHEN activity_name = 'Others' THEN planned_hours ELSE 0 END) AS other_overhead_hours,
+    ROUND((2*hp + 28 + 0.2*num_students)::numeric, 2) AS Admin,
+    ROUND((32 + 0.725*num_students)::numeric, 2) AS Exam,
+    (SUM(CASE WHEN activity_name = 'Lecture' THEN planned_hours ELSE 0 END)
+    + SUM(CASE WHEN activity_name = 'Tutorial' THEN planned_hours ELSE 0 END)
+    + SUM(CASE WHEN activity_name = 'Lab' THEN planned_hours ELSE 0 END)
+    + SUM(CASE WHEN activity_name = 'Seminar' THEN planned_hours ELSE 0 END)
+    + SUM(CASE WHEN activity_name = 'Others' THEN planned_hours ELSE 0 END)
+    + ROUND((2*hp + 28 + 0.2*num_students)::numeric, 2)
+    + ROUND((32 + 0.725*num_students)::numeric, 2)
+    ) AS total_hours
+FROM v_allocation_hours WHERE study_year = 2025
+GROUP BY course_code, instance_id, hp, study_period, num_students ORDER BY course_code, instance_id;
+
+
+
+\echo 'running query 2'
+SELECT b.course_code AS "Course Code", b.instance_id AS "Course Instance ID", b.hp AS "HP",
+  b.study_period AS "Period", b.teacher_name AS "Teacher Name", jt.job_title AS "Designation",
+  ROUND(b.lecture_hours::numeric,2) AS "Lecture Hours",
+  ROUND(b.tutorial_hours::numeric,2) AS "Tutorial Hours",
+  ROUND(b.lab_hours::numeric,2) AS "Lab Hours",
+  ROUND(b.seminar_hours::numeric,2) AS "Seminar Hours",
+  ROUND(b.other_overhead_hours::numeric,2) AS "Other Overhead Hours",
+  ROUND((2*b.hp + 28 + 0.2*b.num_students)::numeric, 2) AS "Admin",
+  ROUND((32 + 0.725*b.num_students)::numeric,2) AS "Exam",
+  ROUND((b.lecture_hours + b.tutorial_hours + b.lab_hours + b.seminar_hours + b.other_overhead_hours 
+  + (2*b.hp + 28 + 0.2*b.num_students)+ (32 + 0.725*b.num_students))::numeric, 2) AS "Total Hours"
+FROM (
+  SELECT v.course_code, v.instance_id, v.hp, v.study_period, v.teacher_name, v.employment_id, MAX(v.num_students) AS num_students,
+    SUM(CASE WHEN v.activity_name = 'Lecture'  THEN v.allocated_hours ELSE 0 END) AS lecture_hours,
+    SUM(CASE WHEN v.activity_name = 'Tutorial' THEN v.allocated_hours ELSE 0 END) AS tutorial_hours,
+    SUM(CASE WHEN v.activity_name = 'Lab'      THEN v.allocated_hours ELSE 0 END) AS lab_hours,
+    SUM(CASE WHEN v.activity_name = 'Seminar'  THEN v.allocated_hours ELSE 0 END) AS seminar_hours,
+    SUM(CASE WHEN v.activity_name = 'Others'   THEN v.allocated_hours ELSE 0 END) AS other_overhead_hours
+  FROM v_allocation_hours v
+  WHERE v.study_year = 2025 AND v.instance_id = '2025-50273'   -- pick the course instance you want
+  AND v.employment_id IS NOT NULL -- only allocated teachers
+  GROUP BY v.course_code, v.instance_id, v.hp, v.study_period, v.teacher_name, v.employment_id
+) b
+JOIN employee  e  ON e.employment_id = b.employment_id
+JOIN job_title jt ON jt.id           = e.job_title_id
+ORDER BY b.teacher_name, b.course_code, b.instance_id;
+
+
 \echo 'running query 3'
 SELECT b.course_code AS "Course Code", b.instance_id AS "Course Instance ID", b.hp AS "HP", b.study_period AS "Period", b.teacher_name AS "Teacher Name",
   ROUND(b.lecture_hours::numeric,2) AS "Lecture Hours", ROUND(b.tutorial_hours::numeric,2) AS "Tutorial Hours", 
