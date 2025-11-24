@@ -13,6 +13,11 @@ The system models and enforces academic scheduling and allocation rules, providi
 *   **Business logic** in functions and triggers
     
 *   **Reproducible seeding pipeline** from CSV files
+
+*   **OLAP**  that returns 4 basic tables used to generate analysis report and
+creates materialized views to optimize retrievals of frequently used queries
+
+* **Optimization** via indexes and materialized views
     
 
 What the System Manages
@@ -20,9 +25,15 @@ What the System Manages
 
 ### Core Entities
 
-**person** : Natural persons (first/last name, phone, address, personal number)
+**person** : Natural persons (first/last name, address, personal number)
+
+**phone\_number** : Phone number or phone numbers of each person, since one per-
+son can have 0 or multiple phone numbers.
 
 **employee** : Contract-based employees linked to person (skill level, salary, manager relationship)
+
+**salary** : Salary or salaries (store historical salaries)per employee. Only 1 salary is
+marked as current per employee.
 
 **department**: Employees belong to exactly one department 
 
@@ -38,10 +49,17 @@ What the System Manages
 
 **job\_title** : One-to-one relationship for each employee’s title
 
+**skill** : unique skills that an employee can have
+
+**employee\_skills** : which employee has which skills (cross table to handle the many
+to many relation)
+
 Key Business Rules
 ------------------
 
-*   **Versioned Course Layouts** : Each course\_code can have multiple layout rows with different created\_at.Exactly one row per course is marked is\_current = TRUE. Instances bind to a specific layout (so older instances keep historical HP values).
+*   **Versioned Course Layouts** : Each course\_code can have multiple layout rows with different created\_at. Exactly one row per course is marked is\_current = TRUE. Instances bind to a specific layout (so older instances keep historical HP values).
+
+* **Versioning of Salary** : Each employee can have multiple lsalary rows with different created\_at. Exactly one row per salary is marked is\_current = TRUE. (so older salaries are kept in the Database).
     
 *   **Max 4 Allocations per Period** : A trigger ensures an employee cannot be allocated to more than **4 distinct instances** in the same (study\_year, study\_period).
         
@@ -62,18 +80,28 @@ IV1351_PROJECT/
 │  ├─ schema.sql        # Tables, types, constraints, indexes  
 │  ├─ functions.sql     # Business logic (Procedural Language/PostgreSQL)  
 │  ├─ triggers.sql      # Triggers
-│  └─ seeds.sql         # CSV loader + inserts  
+│  ├─ seeds.sql         # CSV loader + inserts  
+│  ├─ indexes.sql       #intexes used for OLAP optimization
+│  └─ olap.sql          
 └─ seeds_csvs/     
-    ├─ person.csv     
-    ├─ employee.csv     
-    ├─ department.csv     
-    ├─ affiliations.csv     
-    ├─ teaching_activity.csv     
-    ├─ course_layout.csv     
-    ├─ course_instance.csv     
-    ├─ planned_activity.csv     
-    ├─ allocations.csv     
-    └─ job_titles.csv   
+│   ├─ person.csv     
+│   ├─ employee.csv     
+│   ├─ department.csv     
+│   ├─ affiliations.csv     
+│   ├─ teaching_activity.csv     
+│   ├─ course_layout.csv     
+│   ├─ course_instance.csv     
+│   ├─ planned_activity.csv     
+│   ├─ allocations.csv     
+│   ├─ job_titles.csv  
+│   ├─ salary.csv
+│   ├─ skills.csv
+│   ├─ phone_number.csv
+│   └─ employee_skills.csv
+└─ erd/
+│   └─logical_model.png
+└─analysis/
+     └─ #txt files with analysis reports of efficiency for postgres used for optimization (using EXPLAIN ANALYZE tool)
 
 Run Instructions
 ----------------
@@ -87,6 +115,8 @@ You must be in the **project root directory** (IV1351\_PROJECT/) when running co
 5. `\i sql/functions.sql`  
 6. `\i sql/triggers.sql`  
 7. `\i sql/seeds.sql`
+8. `\i sql/indexes.sql`
+9. `\i sql/olap.sql`
 
 Seeding Details
 ---------------
