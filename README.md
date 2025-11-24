@@ -79,29 +79,30 @@ IV1351_PROJECT/
 ├─ sql/  
 │  ├─ schema.sql        # Tables, types, constraints, indexes  
 │  ├─ functions.sql     # Business logic (Procedural Language/PostgreSQL)  
-│  ├─ triggers.sql      # Triggers
+│  ├─ triggers.sql      # Triggers  
 │  ├─ seeds.sql         # CSV loader + inserts  
-│  ├─ indexes.sql       #intexes used for OLAP optimization
-│  └─ olap.sql          
-└─ seeds_csvs/     
-│   ├─ person.csv     
-│   ├─ employee.csv     
-│   ├─ department.csv     
-│   ├─ affiliations.csv     
-│   ├─ teaching_activity.csv     
-│   ├─ course_layout.csv     
-│   ├─ course_instance.csv     
-│   ├─ planned_activity.csv     
-│   ├─ allocations.csv     
-│   ├─ job_titles.csv  
-│   ├─ salary.csv
-│   ├─ skills.csv
-│   ├─ phone_number.csv
-│   └─ employee_skills.csv
-└─ erd/
-│   └─logical_model.png
-└─analysis/
-     └─ #txt files with analysis reports of efficiency for postgres used for optimization (using EXPLAIN ANALYZE tool)
+│  ├─ indexes.sql       # Indexes used for OLAP optimization  
+│  └─ olap.sql          # OLAP/reporting queries
+├─ seeds_csvs/     
+│  ├─ person.csv     
+│  ├─ employee.csv     
+│  ├─ department.csv     
+│  ├─ affiliations.csv     
+│  ├─ teaching_activity.csv     
+│  ├─ course_layout.csv     
+│  ├─ course_instance.csv     
+│  ├─ planned_activity.csv     
+│  ├─ allocations.csv     
+│  ├─ job_titles.csv  
+│  ├─ salary.csv
+│  ├─ skills.csv
+│  ├─ phone_number.csv
+│  └─ employee_skills.csv
+├─ erd/
+│  └─ logical_model.png
+└─ analysis/
+   └─  # txt files with EXPLAIN ANALYZE efficiency reports used for optimization
+
 
 Run Instructions
 ----------------
