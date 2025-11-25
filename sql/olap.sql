@@ -45,6 +45,7 @@ GROUP BY course_code, instance_id, hp, study_period, num_students ORDER BY cours
 
 SELECT * FROM "query1";
 
+
 \echo 'running query 2'
 SELECT b.course_code AS "Course Code", b.instance_id AS "Course Instance ID", b.hp AS "HP",
   b.study_period AS "Period", b.teacher_name AS "Teacher Name", jt.job_title AS "Designation",
@@ -102,6 +103,7 @@ FROM (
 ORDER BY b.teacher_name, b.course_code, b.instance_id;
 
 SELECT * FROM "query3";
+
 
 \echo 'running query 4'
 SELECT employment_id AS "Employment ID", teacher_name AS "Teacher's Name", study_period AS period, COUNT(DISTINCT instance_id) AS no_of_courses
