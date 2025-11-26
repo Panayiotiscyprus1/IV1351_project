@@ -186,6 +186,16 @@ SELECT e.employment_id, p.first_name  AS employee_first_name, p.last_name   AS e
   m.employment_id AS manager_employment_id, mp.first_name AS manager_first_name, mp.last_name  AS manager_last_name
 FROM employee e JOIN person   p  ON p.id = e.person_id LEFT JOIN employee m  ON m.employment_id = e.employment_id_manager
 LEFT JOIN person   mp ON mp.id = m.person_id ORDER BY p.last_name, p.first_name;
+
+-- employees and there managers
+SELECT e.employment_id AS employee_id, pe.first_name || ' ' || pe.last_name AS employee_name,
+  d.department_name, m.employment_id AS manager_id, pm.first_name || ' ' || pm.last_name AS manager_name
+FROM employee e JOIN department d ON e.department_id = d.id
+LEFT JOIN employee m ON d.manager_employment_id = m.employment_id
+LEFT JOIN person pe ON pe.id = e.person_id
+LEFT JOIN person pm ON pm.id = m.person_id
+ORDER BY d.department_name, employee_name;
+
 ```
 
 **Authors:** Panayiotis Charalambous, Milana Timonina, Alex Ambersky

@@ -33,8 +33,7 @@ CREATE TABLE stage.employee (
   personal_number        BIGINT,
   department_name        VARCHAR(500),     
   job_title              VARCHAR(500),     
-  skill_level            skill_level_t,
-  manager_employment_id  VARCHAR(500)  
+  skill_level            skill_level_t
 );
 
 DROP TABLE IF EXISTS stage.salary CASCADE;
@@ -49,7 +48,7 @@ CREATE TABLE stage.salary (
 DROP TABLE IF EXISTS stage.department CASCADE;
 CREATE TABLE stage.department (
   department_name VARCHAR(500),
-  manager         VARCHAR(500)
+  manager_employment_id         VARCHAR(500)
 );
 
 -- Job title lookup (list of distinct titles)
@@ -150,8 +149,8 @@ SELECT DISTINCT phone_number, person_id
 FROM stage.phone_number;
 
 \echo '==> Inserting: department'
-INSERT INTO department (department_name, manager)
-SELECT DISTINCT department_name, manager
+INSERT INTO department (department_name) --only inserting department because employee not created yet, and manager_employment_id references employee
+SELECT DISTINCT department_name
 FROM stage.department;
 
 \echo '==> Inserting: job_title (lookup)'
@@ -188,18 +187,23 @@ JOIN teaching_activity ta ON ta.activity_name = pa.activity_name;
 
 \echo '==> Inserting: employee (resolve dept/title by name, person by personal_number)'
 INSERT INTO employee (employment_id, person_id, skill_level,
-                      employment_id_manager, department_id, job_title_id)
+                      department_id, job_title_id)
 SELECT
   se.employment_id,
   p.id,
   se.skill_level,
-  NULLIF(se.manager_employment_id,''),
   d.id,
   jt.id
 FROM stage.employee se
 JOIN person p       ON p.personal_number  = se.personal_number
 JOIN department d   ON d.department_name  = se.department_name
 JOIN job_title jt   ON jt.job_title       = se.job_title;
+
+\echo '==> Updating: department managers'
+UPDATE department d
+SET manager_employment_id = sd.manager_employment_id
+FROM stage.department sd
+WHERE d.department_name = sd.department_name;
 
 \echo '==> Inserting salaries into salary'
 INSERT INTO salary (employment_id, salary, created_at, is_current)

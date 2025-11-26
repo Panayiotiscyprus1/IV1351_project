@@ -31,13 +31,6 @@ CREATE TABLE phone_number (
   person_id    INT NOT NULL REFERENCES person(id) ON DELETE CASCADE
 );
 
--- ---------- department ----------
-DROP TABLE IF EXISTS department CASCADE;
-CREATE TABLE department (
-  id               INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,                     
-  department_name  VARCHAR(500) UNIQUE NOT NULL,
-  manager          VARCHAR(500)                                 
-);
 
 -- ---------- job_title ----------
 DROP TABLE IF EXISTS job_title CASCADE;
@@ -46,16 +39,29 @@ CREATE TABLE job_title (
   job_title VARCHAR(500) UNIQUE NOT NULL
 );
 
--- ---------- employee ----------
-DROP TABLE IF EXISTS employee CASCADE;
-CREATE TABLE employee (
-  employment_id          VARCHAR(500) UNIQUE NOT NULL PRIMARY KEY,   
-  skill_level            skill_level_t,                               
-  employment_id_manager  VARCHAR(500) REFERENCES employee(employment_id) ON DELETE SET NULL,
-  person_id              INT NOT NULL UNIQUE REFERENCES person(id) ON DELETE CASCADE,
-  department_id          INT NOT NULL REFERENCES department(id) ON DELETE RESTRICT,
-  job_title_id           INT NOT NULL REFERENCES job_title(id) ON DELETE RESTRICT
+-- department first, without FK
+CREATE TABLE department (
+  id                  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  department_name     VARCHAR(500) UNIQUE NOT NULL,
+  manager_employment_id VARCHAR(500)  -- FK added later
 );
+
+-- employee, with its department FK
+CREATE TABLE employee (
+  employment_id  VARCHAR(500) PRIMARY KEY,
+  skill_level    skill_level_t,
+  person_id      INT NOT NULL UNIQUE REFERENCES person(id) ON DELETE CASCADE,
+  department_id  INT NOT NULL REFERENCES department(id) ON DELETE RESTRICT,
+  job_title_id   INT NOT NULL REFERENCES job_title(id) ON DELETE RESTRICT
+);
+
+-- Since department references employee (manager), and is created before the employee table
+-- we add that FK constraint afterwards
+ALTER TABLE department
+  ADD FOREIGN KEY (manager_employment_id)
+  REFERENCES employee(employment_id)
+  ON DELETE SET NULL;
+
 
 -- Salary history (versioned) for each employee
 DROP TABLE IF EXISTS salary CASCADE;
