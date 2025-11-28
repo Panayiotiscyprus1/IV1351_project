@@ -101,7 +101,8 @@ DROP TABLE IF EXISTS stage.allocations CASCADE;
 CREATE TABLE stage.allocations (
   instance_id    VARCHAR(100),
   activity_name  VARCHAR(500),
-  employment_id  VARCHAR(500)
+  employment_id  VARCHAR(500),
+  allocated_hours DOUBLE PRECISION
 );
 
 -- skill
@@ -211,8 +212,8 @@ SELECT s.employment_id, s.salary, COALESCE(s.created_at, now()), COALESCE(s.is_c
 FROM stage.salary s;
 
 \echo '==> Inserting: allocations (validated against planned_activity)'
-INSERT INTO allocations (instance_id, teaching_activity_id, employment_id)
-SELECT al.instance_id, ta.id, al.employment_id
+INSERT INTO allocations (instance_id, teaching_activity_id, employment_id, allocated_hours)
+SELECT al.instance_id, ta.id, al.employment_id, al.allocated_hours
 FROM stage.allocations al
 JOIN teaching_activity ta ON ta.activity_name = al.activity_name
 JOIN planned_activity  pa ON pa.instance_id = al.instance_id

@@ -125,6 +125,7 @@ CREATE TABLE allocations (
   instance_id          VARCHAR(100) NOT NULL,
   teaching_activity_id BIGINT      NOT NULL,
   employment_id        VARCHAR(500) NOT NULL REFERENCES employee(employment_id) ON DELETE CASCADE,
+  allocated_hours DOUBLE PRECISION NOT NULL,
   FOREIGN KEY (instance_id, teaching_activity_id) REFERENCES planned_activity(instance_id, teaching_activity_id) ON DELETE CASCADE,
   -- One row per (instance, activity, teacher)
   PRIMARY KEY (instance_id, teaching_activity_id, employment_id)
