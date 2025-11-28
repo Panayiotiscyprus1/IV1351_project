@@ -45,7 +45,7 @@ marked as current per employee.
 
 **planned\_activity** : Per instance: which activities and how many hours (linked to teaching\_activity by ID)
 
-**allocations** : Which employee is assigned to which planned activity and course instance
+**allocations** : Which employee is assigned to which planned activity and course instance and for how many hours.
 
 **job\_title** : One-to-one relationship for each employee’s title
 
