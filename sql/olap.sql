@@ -70,7 +70,6 @@ FROM (
   FROM v_allocation_hours v
   WHERE v.study_year    = 2025
     AND v.instance_id   = '2025-50273'   -- pick the course instance you want
-    AND v.employment_id IS NOT NULL      -- only allocated teachers
   GROUP BY v.course_code, v.instance_id, v.hp, v.study_period, v.teacher_name, v.employment_id
 ) b
 JOIN employee  e  ON e.employment_id = b.employment_id
