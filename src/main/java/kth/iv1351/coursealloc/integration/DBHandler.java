@@ -2,6 +2,7 @@ package kth.iv1351.coursealloc.integration;
 
 import kth.iv1351.coursealloc.model.CourseInstanceCost;
 import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
+import kth.iv1351.coursealloc.model.TeacherOverloadedException;
 import java.sql.*;
 
 /**
@@ -403,6 +404,154 @@ public int increaseNumStudents(String instanceId, int delta) throws SQLException
     }
     }
 
+    /**
+     * Looks up a teaching_activity.id by its name.
+     * Assumes activities like 'Lecture', 'Tutorial', 'Lab', 'Seminar', 'Others', 'Exercise'
+     * already exist in the teaching_activity table (seeded by your SQL).
+     */
+    public long getTeachingActivityIdByName(String activityName) throws SQLException {
+        String sql = "SELECT id FROM teaching_activity WHERE activity_name = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, activityName);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new SQLException("Unknown teaching activity: " + activityName);
+                }
+                return rs.getLong("id");
+            }
+        }
+    }
+
+    /**
+ * Simple DTO for study year & period of an instance (used by controller logic).
+ */
+public static class InstancePeriod {
+    public final int studyYear;
+    public final String studyPeriod;
+    public InstancePeriod(int studyYear, String studyPeriod) {
+        this.studyYear = studyYear;
+        this.studyPeriod = studyPeriod;
+    }
+}
+
+    /**
+     * Reads study_year and study_period from course_instance for the given instance_id.
+     */
+    public InstancePeriod getInstancePeriod(String instanceId) throws SQLException {
+        String sql =
+            "SELECT study_year, study_period " +
+            "FROM course_instance " +
+            "WHERE instance_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, instanceId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new SQLException("Course instance not found: " + instanceId);
+                }
+                int year = rs.getInt("study_year");
+                String period = rs.getString("study_period");
+                return new InstancePeriod(year, period);
+            }
+        }
+    }
+    
+
+    /**
+     * Returns how many DISTINCT course instances this teacher has allocations in
+     * for a given (study_year, study_period).
+     * No decision logic here, just counting.
+     */
+    public int countTeacherInstancesInPeriod(String employmentId,
+        int studyYear,
+        String studyPeriod) throws SQLException {
+    String sql =
+    "SELECT COUNT(DISTINCT a.instance_id) AS cnt " +
+    "FROM allocations a " +
+    "JOIN course_instance ci ON ci.instance_id = a.instance_id " +
+    "WHERE a.employment_id = ? " +
+    "  AND ci.study_year   = ? " +
+    "  AND ci.study_period = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    ps.setString(1, employmentId);
+    ps.setInt(2, studyYear);
+    ps.setString(3, studyPeriod);
+    try (ResultSet rs = ps.executeQuery()) {
+    if (!rs.next()) {
+    return 0;
+    }
+    return rs.getInt("cnt");
+    }
+    }
+    }
+
+    
+    /**
+     * Returns true if this teacher has at least one allocation on this instance
+     * (any activity). Again, no business decision here, just data.
+     */
+    public boolean teacherAlreadyAllocatedOnInstance(String instanceId,
+        String employmentId) throws SQLException {
+    String sql =
+    "SELECT 1 " +
+    "FROM allocations " +
+    "WHERE instance_id = ? AND employment_id = ? " +
+    "LIMIT 1";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    ps.setString(1, instanceId);
+    ps.setString(2, employmentId);
+    try (ResultSet rs = ps.executeQuery()) {
+    return rs.next();
+    }
+    }
+    }
+
+
+    /**
+     * Pure CRUD: insert or update an allocation row with given hours.
+     * Controller decides if it *should* be allowed; DAO just does it.
+     */
+    public void upsertAllocation(String instanceId,
+        long teachingActivityId,
+        String employmentId,
+        double allocatedHours) throws SQLException {
+    String sql =
+    "INSERT INTO allocations (instance_id, teaching_activity_id, employment_id, allocated_hours) " +
+    "VALUES (?, ?, ?, ?) " +
+    "ON CONFLICT (instance_id, teaching_activity_id, employment_id) " +
+    "DO UPDATE SET allocated_hours = EXCLUDED.allocated_hours";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    ps.setString(1, instanceId);
+    ps.setLong(2, teachingActivityId);
+    ps.setString(3, employmentId);
+    ps.setDouble(4, allocatedHours);
+    ps.executeUpdate();
+    }
+    }
+
+
+    /**
+     * Pure CRUD: delete an allocation row.
+     */
+    public void deleteAllocation(String instanceId,
+        long teachingActivityId,
+        String employmentId) throws SQLException {
+    String sql =
+    "DELETE FROM allocations " +
+    "WHERE instance_id = ? " +
+    "  AND teaching_activity_id = ? " +
+    "  AND employment_id = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    ps.setString(1, instanceId);
+    ps.setLong(2, teachingActivityId);
+    ps.setString(3, employmentId);
+    ps.executeUpdate();
+    }
+    }
 
 }
 

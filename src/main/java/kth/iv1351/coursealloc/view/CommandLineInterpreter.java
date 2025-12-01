@@ -3,6 +3,7 @@ package kth.iv1351.coursealloc.view;
 import kth.iv1351.coursealloc.controller.Controller;
 import kth.iv1351.coursealloc.model.CourseInstanceCost;
 import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
+import kth.iv1351.coursealloc.model.TeacherOverloadedException;
 
 import java.sql.SQLException;
 import java.util.Scanner;
@@ -49,6 +50,13 @@ public class CommandLineInterpreter {
                         handleAddExercise(tokens);
                         break;
 
+                    case "alloc":
+                        handleAlloc(tokens);
+                        break;
+                    case "dealloc":
+                        handleDealloc(tokens);
+                        break;
+
                     // later: allocate, deallocate, add_exercise, list_exercise  
 
                     default:
@@ -68,6 +76,8 @@ public class CommandLineInterpreter {
         System.out.println("  cost <instance_id>");
         System.out.println("  inc_students <instance_id> <delta>");
         System.out.println("  add_exercise <instance_id> <employment_id> <planned_hours>");
+        System.out.println("  alloc <instance_id> <employment_id> <activity_name> <hours>");
+        System.out.println("  dealloc <instance_id> <employment_id> <activity_name>");
         System.out.println("  help");
         System.out.println("  quit");
     }
@@ -187,4 +197,67 @@ private void handleAddExercise(String[] tokens) throws SQLException {
             info.getTeacherName());
     System.out.println("------------------------------------------------------------------------------");
 }
+
+
+/**
+ * Command:
+ *   alloc <instance_id> <employment_id> <activity_name> <hours>
+ *
+ * Example:
+ *   alloc 2025-50273 E2025-001 Lecture 5
+ */
+private void handleAlloc(String[] tokens) throws SQLException {
+    if (tokens.length != 5) {
+        System.out.println("Usage: alloc <instance_id> <employment_id> <activity_name> <hours>");
+        return;
+    }
+
+    String instanceId   = tokens[1];
+    String employmentId = tokens[2];
+    String activityName = tokens[3];
+    double hours;
+
+    try {
+        hours = Double.parseDouble(tokens[4]);
+    } catch (NumberFormatException e) {
+        System.out.println("hours must be a number, e.g. 5 or 7.5");
+        return;
+    }
+
+    try {
+        contr.allocateTeaching(instanceId, employmentId, activityName, hours);
+        System.out.println("Allocation created/updated: " + employmentId +
+                " -> " + activityName + " on " + instanceId +
+                " (" + hours + " hours).");
+    } catch (TeacherOverloadedException e) {
+        System.out.println("Cannot allocate: " + e.getMessage());
+    }
+}
+
+
+/**
+ * Command:
+ *   dealloc <instance_id> <employment_id> <activity_name>
+ *
+ * Example:
+ *   dealloc 2025-50273 E2025-001 Lecture
+ */
+private void handleDealloc(String[] tokens) throws SQLException {
+    if (tokens.length != 4) {
+        System.out.println("Usage: dealloc <instance_id> <employment_id> <activity_name>");
+        return;
+    }
+
+    String instanceId   = tokens[1];
+    String employmentId = tokens[2];
+    String activityName = tokens[3];
+
+    contr.deallocateTeaching(instanceId, employmentId, activityName);
+
+    System.out.println("Deallocated " + employmentId + " from " +
+            activityName + " on " + instanceId + ".");
+}
+
+
+
 }

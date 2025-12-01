@@ -4,8 +4,11 @@ package kth.iv1351.coursealloc.controller;
 import java.sql.SQLException;
 
 import kth.iv1351.coursealloc.integration.DBHandler;
+import kth.iv1351.coursealloc.integration.DBHandler.InstancePeriod;
 import kth.iv1351.coursealloc.model.CourseInstanceCost;
 import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
+import kth.iv1351.coursealloc.model.TeacherOverloadedException;
+import kth.iv1351.coursealloc.integration.DBHandler.InstancePeriod;
 
 /**
  * Temporary placeholder controller for testing startup and wiring.
@@ -78,6 +81,88 @@ public class Controller {
             throw e;
         }
     }
+
+
+    /**
+ * Use-case: allocate a teaching activity (e.g. Lecture, Tutorial, Exercise)
+ * for a teacher on a course instance, enforcing:
+ *
+ *   A teacher is not allowed to teach in more than 4 course instances
+ *   in the same period (same study_year + study_period).
+ *
+ * Business logic lives here (controller), DAO only does data access.
+ */
+public void allocateTeaching(String instanceId,
+                             String employmentId,
+                             String activityName,
+                             double allocatedHours)
+        throws SQLException, TeacherOverloadedException {
+    try {
+        db.beginTransaction();
+
+        // 1. Get activity id (CRUD)
+        long activityId = db.getTeachingActivityIdByName(activityName);
+
+        // 2. Get target instance year & period (CRUD)
+        InstancePeriod ip = db.getInstancePeriod(instanceId);
+
+        // 3. Check if teacher already has *any* allocation on this instance
+        boolean alreadyOnThisInstance =
+                db.teacherAlreadyAllocatedOnInstance(instanceId, employmentId);
+
+        // 4. If this is a new instance for that teacher in that period,
+        //    enforce the "max 4 instances per period" rule
+        if (!alreadyOnThisInstance) {
+            int currentInstances =
+                    db.countTeacherInstancesInPeriod(
+                            employmentId, ip.studyYear, ip.studyPeriod);
+
+            if (currentInstances >= 4) {
+                db.rollback();
+                throw new TeacherOverloadedException(
+                    "Teacher " + employmentId + " already has " +
+                    currentInstances + " course instances in period " +
+                    ip.studyPeriod + " of year " + ip.studyYear +
+                    " -> cannot allocate another instance."
+                );
+            }
+        }
+
+        // 5. All good -> do the actual allocation (CRUD)
+        db.upsertAllocation(instanceId, activityId, employmentId, allocatedHours);
+
+        db.commit();
+    } catch (TeacherOverloadedException e) {
+        // we already rolled back above but do it again defensively
+        db.rollback();
+        throw e;
+    } catch (SQLException e) {
+        db.rollback();
+        throw e;
+    }
+}
+
+    /**
+     * Use-case: deallocate a teaching activity for a teacher on an instance.
+     * No special rule here; it's always allowed.
+     */
+    public void deallocateTeaching(String instanceId,
+        String employmentId,
+        String activityName)
+    throws SQLException {
+    try {
+    db.beginTransaction();
+
+    long activityId = db.getTeachingActivityIdByName(activityName);
+    db.deleteAllocation(instanceId, activityId, employmentId);
+
+    db.commit();
+    } catch (SQLException e) {
+    db.rollback();
+    throw e;
+    }
+    }
+
 
     
 }
