@@ -1,7 +1,10 @@
 package kth.iv1351.coursealloc.controller;
 
 
+import java.sql.SQLException;
+
 import kth.iv1351.coursealloc.integration.DBHandler;
+import kth.iv1351.coursealloc.model.CourseInstanceCost;
 
 /**
  * Temporary placeholder controller for testing startup and wiring.
@@ -17,10 +20,24 @@ public class Controller {
     }
 
     /**
-     * Temporary method just for early testing.
-     * Prints confirmation that Controller was created and DBHandler injected.
+     * Use-case: compute teaching cost for a course instance in a given year.
+     *
+     * Handles transaction boundaries:
+     *  - beginTransaction()
+     *  - commit() on success
+     *  - rollback() on SQLException
      */
-    public void testController() {
-        System.out.println("Controller initialized successfully.");
+    public CourseInstanceCost computeCourseCost(String instanceId)
+        throws SQLException {
+    try {
+        db.beginTransaction(); // even for reads, to show proper transaction handling
+        CourseInstanceCost cost = db.computeCostForInstance(instanceId);
+        db.commit();
+        return cost;
+    } catch (SQLException e) {
+        db.rollback();
+        throw e;
     }
+    }
+
 }
