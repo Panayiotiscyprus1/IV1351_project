@@ -47,7 +47,9 @@ SELECT * FROM "query1";
 
 
 \echo 'running query 2'
-SELECT b.course_code AS "Course Code", b.instance_id AS "Course Instance ID", b.hp AS "HP",
+DROP VIEW IF EXISTS "query2";
+CREATE VIEW "query2" AS
+SELECT b.course_code AS "Course Code", b.instance_id AS "Course Instance ID", b.hp AS "HP", b.employment_id AS "Employment ID", 
   b.study_period AS "Period", b.teacher_name AS "Teacher Name", jt.job_title AS "Designation",
   ROUND(b.lecture_hours::numeric, 2) AS "Lecture Hours", ROUND(b.tutorial_hours::numeric, 2) AS "Tutorial Hours",
   ROUND(b.lab_hours::numeric, 2) AS "Lab Hours", ROUND(b.seminar_hours::numeric, 2) AS "Seminar Hours",
@@ -68,14 +70,14 @@ FROM (
     -- how many teachers are allocated on this course instance
     COUNT(*) OVER (PARTITION BY v.course_code, v.instance_id) AS teacher_count
   FROM v_allocation_hours v
-  WHERE v.study_year    = 2025
-    AND v.instance_id   = '2025-50273'   -- pick the course instance you want
+  WHERE v.study_year = EXTRACT(YEAR FROM CURRENT_DATE)::INT
   GROUP BY v.course_code, v.instance_id, v.hp, v.study_period, v.teacher_name, v.employment_id
 ) b
 JOIN employee  e  ON e.employment_id = b.employment_id
 JOIN job_title jt ON jt.id = e.job_title_id
 ORDER BY b.teacher_name, b.course_code, b.instance_id;
 
+SELECT * FROM "query2";
 
 \echo 'running query 3'
 DROP MATERIALIZED VIEW IF EXISTS "query3";

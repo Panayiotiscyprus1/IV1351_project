@@ -39,6 +39,10 @@ public class CommandLineInterpreter {
                     case "cost":
                         handleCost(tokens);
                         break;
+                    
+                    case "inc_students":
+                        handleIncreaseStudents(tokens);
+                        break;
 
                     // later: inc_students, allocate, deallocate, add_exercise, list_exercise
 
@@ -57,6 +61,7 @@ public class CommandLineInterpreter {
     private void printHelp() {
         System.out.println("Commands:");
         System.out.println("  cost <instance_id>");
+        System.out.println("  inc_students <instance_id> <delta>");
         System.out.println("  help");
         System.out.println("  quit");
     }
@@ -85,5 +90,42 @@ public class CommandLineInterpreter {
             cost.getPlannedCostKsek(),
             cost.getActualCostKsek());
         System.out.println("-----------------------------------------------------------------------------------------");
+    }
+
+    /**
+ * Command:
+ *   inc_students <instance_id> <delta>
+ *
+ * Example:
+ *   inc_students 2025-50413 100
+ *
+ * Increases num_students by <delta> and prints the updated number
+ * of students for that instance.
+ *
+ * If the user wants to see how the teaching cost changed, they can run:
+ *   cost <instance_id>
+ * afterwards.
+ */
+    private void handleIncreaseStudents(String[] tokens) throws SQLException {
+        if (tokens.length != 3) {
+            System.out.println("Usage: inc_students <instance_id> <delta>");
+            return;
+        }
+
+        String instanceId = tokens[1];
+        int delta;
+        try {
+            delta = Integer.parseInt(tokens[2]);
+        } catch (NumberFormatException e) {
+            System.out.println("Delta must be an integer, e.g. 100 or -20");
+            return;
+        }
+
+        int newNumStudents = contr.increaseStudents(instanceId, delta);
+
+        System.out.println("Number of students for instance " + instanceId
+                + " has been changed by " + delta + ".");
+        System.out.println("New number of students: " + newNumStudents);
+        System.out.println("Run 'cost " + instanceId + "' to see the updated teaching cost.");
     }
 }

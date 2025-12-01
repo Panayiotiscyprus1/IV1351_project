@@ -173,13 +173,11 @@ private PlannedAggregate fetchPlannedPart(String instanceId) throws SQLException
  */
 private double fetchActualPart(String instanceId) throws SQLException {
     String sql =
-        "SELECT SUM(vah.allocated_hours * s.salary) AS total_cost " +
-        "FROM v_allocation_hours vah " +                
-        "JOIN course_instance ci ON ci.instance_id = vah.instance_id " +
-        "JOIN salary s ON s.employment_id = vah.employment_id " +
-        "WHERE vah.instance_id = ? " +
-        "  AND ci.study_year = EXTRACT(YEAR FROM CURRENT_DATE)::INT " +
-        "  AND s.is_current = TRUE";                 
+        "SELECT SUM(q.\"Total Hours\" * s.salary) AS total_cost " +
+        "FROM \"query2\" q " +
+        "JOIN salary s ON s.employment_id = q.\"Employment ID\" " +
+        "WHERE q.\"Course Instance ID\" = ? " +
+        "  AND s.is_current = TRUE";               
 
     try (PreparedStatement ps = connection.prepareStatement(sql)) {
         ps.setString(1, instanceId);
@@ -193,6 +191,55 @@ private double fetchActualPart(String instanceId) throws SQLException {
             return totalCostSek / 1000.0;
         }
     }
+}
+
+
+
+/**
+ * Increases the number of registered students for a course instance by the
+ * given delta (e.g. +100).
+ *
+ * Uses SELECT ... FOR UPDATE to lock the row while reading the current
+ * num_students, then writes back the new value.
+ *
+ * IMPORTANT: This method DOES NOT commit or rollback.
+ * The controller is responsible for transaction boundaries.
+ */
+public int increaseNumStudents(String instanceId, int delta) throws SQLException {
+    // 1. Lock the row and read current num_students
+    String selectSql =
+        "SELECT num_students " +
+        "FROM course_instance " +
+        "WHERE instance_id = ? " +
+        "FOR UPDATE";
+
+    int current;
+    try (PreparedStatement ps = connection.prepareStatement(selectSql)) {
+        ps.setString(1, instanceId);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (!rs.next()) {
+                throw new SQLException("Course instance not found: " + instanceId);
+            }
+            current = rs.getInt("num_students");
+        }
+    }
+
+    int newValue = current + delta;
+
+    // 2. Write back the new value
+    String updateSql =
+        "UPDATE course_instance " +
+        "SET num_students = ? " +
+        "WHERE instance_id = ?";
+
+    try (PreparedStatement ps = connection.prepareStatement(updateSql)) {
+        ps.setInt(1, newValue);
+        ps.setString(2, instanceId);
+        ps.executeUpdate();
+    }
+
+    // 3. Return the updated num_students
+    return newValue;
 }
 
 }

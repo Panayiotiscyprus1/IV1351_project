@@ -40,4 +40,25 @@ public class Controller {
     }
     }
 
+    /**
+ * Increases number of students for an instance by the given delta and returns
+ * the new num_students value after the update.
+ *
+ * Transaction flow:
+ *   begin
+ *     -> increaseNumStudents(instanceId, delta)
+ *   commit on success, rollback on SQLException.
+ */
+    public int increaseStudents(String instanceId, int delta) throws SQLException {
+        try {
+            db.beginTransaction();
+            int newNum = db.increaseNumStudents(instanceId, delta);
+            db.commit();
+            return newNum;
+        } catch (SQLException e) {
+            db.rollback();
+            throw e;
+        }
+    }
+
 }
