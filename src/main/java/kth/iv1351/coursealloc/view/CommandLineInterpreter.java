@@ -2,6 +2,7 @@ package kth.iv1351.coursealloc.view;
 
 import kth.iv1351.coursealloc.controller.Controller;
 import kth.iv1351.coursealloc.model.CourseInstanceCost;
+import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
 
 import java.sql.SQLException;
 import java.util.Scanner;
@@ -44,7 +45,11 @@ public class CommandLineInterpreter {
                         handleIncreaseStudents(tokens);
                         break;
 
-                    // later: inc_students, allocate, deallocate, add_exercise, list_exercise
+                    case "add_exercise":
+                        handleAddExercise(tokens);
+                        break;
+
+                    // later: allocate, deallocate, add_exercise, list_exercise  
 
                     default:
                         System.out.println("Unknown command. Type 'help'.");
@@ -62,6 +67,7 @@ public class CommandLineInterpreter {
         System.out.println("Commands:");
         System.out.println("  cost <instance_id>");
         System.out.println("  inc_students <instance_id> <delta>");
+        System.out.println("  add_exercise <instance_id> <employment_id> <planned_hours>");
         System.out.println("  help");
         System.out.println("  quit");
     }
@@ -128,4 +134,57 @@ public class CommandLineInterpreter {
         System.out.println("New number of students: " + newNumStudents);
         System.out.println("Run 'cost " + instanceId + "' to see the updated teaching cost.");
     }
+
+
+    /**
+ * Command:
+ *   add_exercise <instance_id> <employment_id> <planned_hours>
+ *
+ * Example:
+ *   add_exercise 2025-50273 12345 10
+ *
+ * This will:
+ *   - ensure "Exercise" activity exists,
+ *   - add/update planned_activity for that instance,
+ *   - allocate the specified teacher to Exercise,
+ *   - print a summary of the affected course instance and teacher.
+ */
+private void handleAddExercise(String[] tokens) throws SQLException {
+    if (tokens.length != 4) {
+        System.out.println("Usage: add_exercise <instance_id> <employment_id> <planned_hours>");
+        return;
+    }
+
+    String instanceId   = tokens[1];
+    String employmentId = tokens[2];
+    double plannedHours;
+
+    try {
+        plannedHours = Double.parseDouble(tokens[3]);
+    } catch (NumberFormatException e) {
+        System.out.println("planned_hours must be a number (e.g. 10 or 7.5).");
+        return;
+    }
+
+    ExerciseAllocationInfo info = contr.addExercise(instanceId, employmentId, plannedHours);
+
+    System.out.println("Exercise activity added/updated and teacher allocated.");
+    System.out.println("Affected allocation:");
+    
+    System.out.println("------------------------------------------------------------------------------");
+    System.out.printf("| %-11s | %-15s | %-6s | %-10s | %-20s |%n",
+            "Course Code",
+            "Instance ID",
+            "Period",
+            "Activity",
+            "Teacher");
+    System.out.println("------------------------------------------------------------------------------");
+    System.out.printf("| %-11s | %-15s | %-6s | %-10s | %-20s |%n",
+            info.getCourseCode(),
+            info.getInstanceId(),
+            info.getPeriod(),
+            info.getActivityName(),
+            info.getTeacherName());
+    System.out.println("------------------------------------------------------------------------------");
+}
 }

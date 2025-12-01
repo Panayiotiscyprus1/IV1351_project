@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import kth.iv1351.coursealloc.integration.DBHandler;
 import kth.iv1351.coursealloc.model.CourseInstanceCost;
+import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
 
 /**
  * Temporary placeholder controller for testing startup and wiring.
@@ -61,4 +62,22 @@ public class Controller {
         }
     }
 
+
+    public ExerciseAllocationInfo addExercise(String instanceId,
+                                              String employmentId,
+                                              double plannedHours)
+            throws SQLException {
+        try {
+            db.beginTransaction();
+            ExerciseAllocationInfo info =
+                    db.addExerciseActivity(instanceId, employmentId, plannedHours);
+            db.commit();
+            return info;
+        } catch (SQLException e) {
+            db.rollback();
+            throw e;
+        }
+    }
+
+    
 }

@@ -1,7 +1,7 @@
 package kth.iv1351.coursealloc.integration;
 
 import kth.iv1351.coursealloc.model.CourseInstanceCost;
-
+import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
 import java.sql.*;
 
 /**
@@ -241,6 +241,168 @@ public int increaseNumStudents(String instanceId, int delta) throws SQLException
     // 3. Return the updated num_students
     return newValue;
 }
+
+
+
+
+
+
+    /**
+     * Adds a new teaching activity called "Exercise" for a given course instance,
+     * ensures it exists in teaching_activity, adds a planned_activity row for that
+     * instance, and allocates the specified teacher to it.
+     *
+     * Returns a small DTO (ExerciseAllocationInfo) describing the affected
+     * course instance and teacher for this "Exercise" activity.
+     *
+     * IMPORTANT:
+     *   - This method does NOT handle transactions (no commit/rollback).
+     *     The Controller must wrap it in begin/commit/rollback.
+     *
+     * @param instanceId   The course instance ID, e.g. "2025-50273".
+     * @param employmentId The teacher's employment_id (as stored in allocations).
+     * @param plannedHours Planned hours for this Exercise activity on this instance.
+     */
+    public ExerciseAllocationInfo addExerciseActivity(String instanceId,
+        String employmentId,
+        double plannedHours)
+        throws SQLException {
+        long exerciseActivityId = getOrCreateExerciseActivityId();
+
+        // planned_activity: planned_hours
+        upsertPlannedExercise(instanceId, exerciseActivityId, plannedHours);
+
+        // allocations: allocated_hours (we reuse plannedHours as initial allocated load)
+        insertExerciseAllocation(instanceId, exerciseActivityId, employmentId, plannedHours);
+
+        return fetchExerciseAllocationInfo(instanceId, employmentId);
+        }
+
+
+    /**
+     * Finds the id of teaching_activity with activity_name = 'Exercise'.
+     * If it does not exist, inserts it and returns the new id.
+     */
+    private long getOrCreateExerciseActivityId() throws SQLException {
+        // Try to find existing activity
+        String selectSql =
+            "SELECT id FROM teaching_activity WHERE activity_name = 'Exercise'";
+
+        try (PreparedStatement ps = connection.prepareStatement(selectSql);
+            ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getLong("id");
+            }
+        }
+
+        // Not found -> insert new
+        String insertSql =
+            "INSERT INTO teaching_activity (activity_name) " +
+            "VALUES ('Exercise') " +
+            "RETURNING id";
+
+        try (PreparedStatement ps = connection.prepareStatement(insertSql);
+            ResultSet rs = ps.executeQuery()) {
+            if (!rs.next()) {
+                throw new SQLException("Failed to insert Exercise activity.");
+            }
+            return rs.getLong("id");
+        }
+    }
+
+    /**
+     * Ensures there is a planned_activity row for this instance + Exercise.
+     * If it exists, updates planned_hours; otherwise, inserts a new row.
+     *
+     * Assumes UNIQUE/PK on (instance_id, teaching_activity_id).
+     */
+    private void upsertPlannedExercise(String instanceId,
+        long exerciseActivityId,
+        double plannedHours) throws SQLException {
+    String sql =
+    "INSERT INTO planned_activity (instance_id, teaching_activity_id, planned_hours) " +
+    "VALUES (?, ?, ?) " +
+    "ON CONFLICT (instance_id, teaching_activity_id) " +
+    "DO UPDATE SET planned_hours = EXCLUDED.planned_hours";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    ps.setString(1, instanceId);
+    ps.setLong(2, exerciseActivityId);
+    ps.setDouble(3, plannedHours);
+    ps.executeUpdate();
+    }
+    }
+
+
+    /**
+     * Inserts a row in allocations for (instance, Exercise activity, teacher).
+     * If it already exists, does nothing.
+     */
+    private void insertExerciseAllocation(String instanceId,
+        long exerciseActivityId,
+        String employmentId,
+        double allocatedHours) throws SQLException {
+        String sql =
+        "INSERT INTO allocations (instance_id, teaching_activity_id, employment_id, allocated_hours) " +
+        "VALUES (?, ?, ?, ?) " +
+        "ON CONFLICT (instance_id, teaching_activity_id, employment_id) " +
+        "DO UPDATE SET allocated_hours = EXCLUDED.allocated_hours";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, instanceId);
+        ps.setLong(2, exerciseActivityId);
+        ps.setString(3, employmentId);
+        ps.setDouble(4, allocatedHours);
+        ps.executeUpdate();
+        }
+        }
+
+
+    /**
+     * Reads v_allocation_hours to get a summary row describing the Exercise
+     * allocation we just created, for the given instance and teacher.
+     *
+     * Uses v_allocation_hours columns:
+     *   course_code, instance_id, study_period, activity_name, teacher_name, employment_id
+     */
+    private ExerciseAllocationInfo fetchExerciseAllocationInfo(String instanceId,
+        String employmentId)
+    throws SQLException {
+    String sql =
+    "SELECT course_code, instance_id, study_period, activity_name, teacher_name " +
+    "FROM v_allocation_hours " +
+    "WHERE instance_id = ? " +
+    "  AND employment_id = ? " +
+    "  AND activity_name = 'Exercise' " +
+    "ORDER BY course_code, teacher_name " +
+    "LIMIT 1";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    ps.setString(1, instanceId);
+    ps.setString(2, employmentId);
+
+    try (ResultSet rs = ps.executeQuery()) {
+    if (!rs.next()) {
+    throw new SQLException("No Exercise allocation found in v_allocation_hours for instance "
+    + instanceId + " and teacher " + employmentId);
+    }
+
+    String courseCode   = rs.getString("course_code");
+    String period       = rs.getString("study_period");
+    String activityName = rs.getString("activity_name");
+    String teacherName  = rs.getString("teacher_name");
+
+    return new ExerciseAllocationInfo(
+    courseCode,
+    instanceId,
+    period,
+    activityName,
+    teacherName
+    );
+    }
+    }
+    }
+
 
 }
 
