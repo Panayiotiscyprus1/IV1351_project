@@ -221,23 +221,6 @@ public class DBHandler {
     //  EXERCISE ACTIVITY (TASK 4)
     // ============================================================================
 
-    /**
-     * Adds a new teaching activity called {@code "Exercise"} for a given course instance,
-     * ensures it exists in {@code teaching_activity}, adds/updates a {@code planned_activity}
-     * row for that instance, and allocates the specified teacher to it.
-     * <p>
-     * Returns a small DTO describing the affected course instance and teacher
-     * for this {@code "Exercise"} activity.
-     * <p>
-     * IMPORTANT: This method does NOT commit or rollback.
-     * The controller must wrap it in {@code beginTransaction() / commit() / rollback()}.
-     *
-     * @param instanceId   the course instance ID, e.g. {@code "2025-50273"}.
-     * @param employmentId the teacher's {@code employment_id}.
-     * @param plannedHours planned/allocated hours for this Exercise activity.
-     * @return an {@link ExerciseAllocationInfo} summary row.
-     * @throws SQLException if any of the underlying statements fail.
-     */
     public ExerciseAllocationInfo addExerciseActivity(String instanceId,
                                                       String employmentId,
                                                       double plannedHours)
@@ -254,11 +237,8 @@ public class DBHandler {
     }
 
     /**
-     * Finds the id of {@code teaching_activity} with {@code activity_name = 'Exercise'}.
+     * Finds the id of teaching_activity with activity_name = 'Exercise'.
      * If it does not exist, inserts it and returns the new id.
-     *
-     * @return the id of the Exercise activity.
-     * @throws SQLException if the insert or select fails.
      */
     private long getOrCreateExerciseActivityId() throws SQLException {
         // Try to find existing activity
@@ -288,15 +268,9 @@ public class DBHandler {
     }
 
     /**
-     * Ensures there is a {@code planned_activity} row for this instance + Exercise.
-     * If it exists, updates {@code planned_hours}; otherwise, inserts a new row.
-     * <p>
-     * Assumes a UNIQUE/PK constraint on {@code (instance_id, teaching_activity_id)}.
-     *
-     * @param instanceId         the course instance id.
-     * @param exerciseActivityId the id of the Exercise activity.
-     * @param plannedHours       planned hours to set.
-     * @throws SQLException if the statement fails.
+     * Ensures there is a planned_activity row for this instance + Exercise.
+     * If it exists, updates planned_hours. otherwise, inserts a new row.
+     * Assumes a UNIQUE/PK constraint on (instance_id, teaching_activity_id).
      */
     private void upsertPlannedExercise(String instanceId,
                                        long exerciseActivityId,
@@ -315,15 +289,7 @@ public class DBHandler {
         }
     }
 
-    /**
-     * Inserts or updates a row in {@code allocations} for (instance, Exercise activity, teacher).
-     *
-     * @param instanceId         the course instance id.
-     * @param exerciseActivityId the id of the Exercise activity.
-     * @param employmentId       the teacher's employment id.
-     * @param allocatedHours     allocated hours to set.
-     * @throws SQLException if the statement fails.
-     */
+    //Inserts or updates a row in code allocations for (instance, Exercise activity, teacher).
     private void insertExerciseAllocation(String instanceId,
                                           long exerciseActivityId,
                                           String employmentId,
@@ -344,16 +310,8 @@ public class DBHandler {
     }
 
     /**
-     * Reads {@code v_allocation_hours} to get a summary row describing the Exercise
+     * Reads v_allocation_hours to get a summary row describing the Exercise
      * allocation we just created, for the given instance and teacher.
-     * <p>
-     * Uses columns: {@code course_code}, {@code instance_id}, {@code study_period},
-     * {@code activity_name}, {@code teacher_name}, {@code employment_id}.
-     *
-     * @param instanceId   the course instance id.
-     * @param employmentId the teacher's employment id.
-     * @return {@link ExerciseAllocationInfo} for that Exercise allocation.
-     * @throws SQLException if no matching row is found or the query fails.
      */
     private ExerciseAllocationInfo fetchExerciseAllocationInfo(String instanceId,
                                                                String employmentId)
@@ -400,15 +358,7 @@ public class DBHandler {
     // ============================================================================
 
     /**
-     * Looks up a {@code teaching_activity.id} by its name.
-     * <p>
-     * Assumes activities like {@code 'Lecture'}, {@code 'Tutorial'}, {@code 'Lab'},
-     * {@code 'Seminar'}, {@code 'Others'}, {@code 'Exercise'} already exist in
-     * the {@code teaching_activity} table (seeded by SQL).
-     *
-     * @param activityName the activity name.
-     * @return the activity id.
-     * @throws SQLException if the activity does not exist or the query fails.
+     * Looks up a teaching_activity.id by its name.
      */
     public long getTeachingActivityIdByName(String activityName) throws SQLException {
         String sql = "SELECT id FROM teaching_activity WHERE activity_name = ?";
@@ -424,7 +374,7 @@ public class DBHandler {
     }
 
     /**
-     * Simple DTO for {@code study_year} and {@code study_period} of an instance
+     * Simple DTO for study_year and study_period of an instance
      * (used by controller logic).
      */
     public static class InstancePeriod {
@@ -438,12 +388,8 @@ public class DBHandler {
     }
 
     /**
-     * Reads {@code study_year} and {@code study_period} from {@code course_instance}
-     * for the given {@code instance_id}.
-     *
-     * @param instanceId the course instance id.
-     * @return an {@link InstancePeriod} object.
-     * @throws SQLException if the instance does not exist or the query fails.
+     * Reads study_year and study_period from course_instance
+     * for the given code instance_id
      */
     public InstancePeriod getInstancePeriod(String instanceId) throws SQLException {
         String sql =
@@ -466,16 +412,8 @@ public class DBHandler {
 
     /**
      * Returns how many distinct course instances this teacher has allocations in
-     * for a given {@code (study_year, study_period)}.
-     * <p>
-     * No decision logic here, just counting; the controller interprets the result.
-     *
-     * @param employmentId the teacher's employment id.
-     * @param studyYear    the study year.
-     * @param studyPeriod  the study period (e.g. {@code "P1"}).
-     * @return number of distinct instances where this teacher is allocated.
-     * @throws SQLException if the query fails.
-     */
+     * for a given study_year, study_period.
+    */
     public int countTeacherInstancesInPeriod(String employmentId,
                                              int studyYear,
                                              String studyPeriod) throws SQLException {
@@ -501,16 +439,8 @@ public class DBHandler {
     }
 
     /**
-     * Returns {@code true} if this teacher has at least one allocation on this
-     * instance (any activity).
-     * <p>
-     * Again, no business decision here, just data; the controller uses this to
-     * decide whether to allow deallocation.
-     *
-     * @param instanceId   the course instance id.
-     * @param employmentId the teacher's employment id.
-     * @return {@code true} if such an allocation exists, {@code false} otherwise.
-     * @throws SQLException if the query fails.
+     * Returns true if this teacher has at least one allocation on this instance (any activity).
+     * Again, no business decision here, just data; the controller uses this to decide whether to allow deallocation.
      */
     public boolean teacherAlreadyAllocatedOnInstance(String instanceId,
                                                      String employmentId) throws SQLException {
@@ -529,17 +459,8 @@ public class DBHandler {
         }
     }
 
-    /**
-     * Upserts a {@code planned_activity} row for any activity, not just Exercise.
-     * <p>
-     * Pure CRUD: no business logic. The controller decides the meaning of
-     * {@code plannedHours}.
-     *
-     * @param instanceId         the course instance id.
-     * @param teachingActivityId the activity id.
-     * @param plannedHours       planned hours to set.
-     * @throws SQLException if the statement fails.
-     */
+
+    //Upserts a planned_activity row for any activity, not just Exercise.
     public void upsertPlannedActivity(String instanceId,
                                       long teachingActivityId,
                                       double plannedHours) throws SQLException {
@@ -557,17 +478,7 @@ public class DBHandler {
         }
     }
 
-    /**
-     * Pure CRUD: insert or update an allocation row with given hours.
-     * <p>
-     * The controller decides whether it should be allowed; the DAO just executes it.
-     *
-     * @param instanceId         the course instance id.
-     * @param teachingActivityId the activity id.
-     * @param employmentId       the teacher's employment id.
-     * @param allocatedHours     allocated hours to set.
-     * @throws SQLException if the statement fails.
-     */
+    //Pure CRUD: insert or update an allocation row with given hours.
     public void upsertAllocation(String instanceId,
                                  long teachingActivityId,
                                  String employmentId,
@@ -587,14 +498,7 @@ public class DBHandler {
         }
     }
 
-    /**
-     * Pure CRUD: delete an allocation row.
-     *
-     * @param instanceId         the course instance id.
-     * @param teachingActivityId the activity id.
-     * @param employmentId       the teacher's employment id.
-     * @throws SQLException if the statement fails.
-     */
+    //Pure CRUD: delete an allocation row.
     public void deleteAllocation(String instanceId,
                                  long teachingActivityId,
                                  String employmentId) throws SQLException {
