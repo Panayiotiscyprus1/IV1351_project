@@ -2,7 +2,7 @@ package kth.iv1351.coursealloc.integration;
 
 import kth.iv1351.coursealloc.model.CourseInstanceCost;
 import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
-import kth.iv1351.coursealloc.model.TeacherOverloadedException;
+
 import java.sql.*;
 
 /**
@@ -51,11 +51,6 @@ public class DBHandler {
  * Returns a CourseInstanceCost DTO containing:
  *   courseCode, instanceId, studyPeriod, plannedCostKsek, actualCostKsek.
  *
- * IMPORTANT:
- *   - You MUST adjust the view and column names in fetchPlannedPart() and
- *     fetchActualPart() to match your schema.
- *   - All filtering is done for the current year using:
- *       study_year = EXTRACT(YEAR FROM CURRENT_DATE)::INT
  */
 public CourseInstanceCost computeCostForInstance(String instanceId) throws SQLException {
     // 1. Planned part: total planned hours * average hourly salary
@@ -122,9 +117,6 @@ private double fetchAverageHourlySalary() throws SQLException {
  *  2. Multiplies total planned hours by the average hourly salary.
  *  3. Converts SEK -> kSEK by dividing by 1000.
  *
- * You MUST replace:
- *   - 'planned_olap_view' with the name of your real planned-hours OLAP helper view.
- *   - 'planned_hours' with the correct column (or expression) that gives planned hours.
  */
 private PlannedAggregate fetchPlannedPart(String instanceId) throws SQLException {
     double avgHourlySalary = fetchAverageHourlySalary();
@@ -167,10 +159,6 @@ private PlannedAggregate fetchPlannedPart(String instanceId) throws SQLException
  *  3. Sums allocated_hours * hourly_salary for this instance in the current year.
  *  4. Converts SEK -> kSEK by dividing by 1000.
  *
- * You MUST ensure:
- *   - 'v_allocation_hours' (or your helper view) has:
- *        instance_id, allocated_hours, employment_id
- *   - 'salary' has: employment_id, hourly_salary (and optionally is_current)
  */
 private double fetchActualPart(String instanceId) throws SQLException {
     String sql =
@@ -260,9 +248,9 @@ public int increaseNumStudents(String instanceId, int delta) throws SQLException
      *   - This method does NOT handle transactions (no commit/rollback).
      *     The Controller must wrap it in begin/commit/rollback.
      *
-     * @param instanceId   The course instance ID, e.g. "2025-50273".
-     * @param employmentId The teacher's employment_id (as stored in allocations).
-     * @param plannedHours Planned hours for this Exercise activity on this instance.
+     * instanceId   The course instance ID, e.g. "2025-50273".
+     * employmentId The teacher's employment_id (as stored in allocations).
+     * plannedHours Planned hours for this Exercise activity on this instance.
      */
     public ExerciseAllocationInfo addExerciseActivity(String instanceId,
         String employmentId,

@@ -8,7 +8,6 @@ import kth.iv1351.coursealloc.integration.DBHandler.InstancePeriod;
 import kth.iv1351.coursealloc.model.CourseInstanceCost;
 import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
 import kth.iv1351.coursealloc.model.TeacherOverloadedException;
-import kth.iv1351.coursealloc.integration.DBHandler.InstancePeriod;
 
 /**
  * Temporary placeholder controller for testing startup and wiring.
