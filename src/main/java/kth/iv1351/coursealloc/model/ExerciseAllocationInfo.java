@@ -1,5 +1,9 @@
 package kth.iv1351.coursealloc.model;
 
+/**
+ * DTO for the result of exercise allocation: Course Code, Instance ID, Period, Activity Name, Teacher Name.
+ */
+
 public class ExerciseAllocationInfo {
     private final String courseCode;
     private final String instanceId;
@@ -16,6 +20,7 @@ public class ExerciseAllocationInfo {
         this.teacherName = teacherName;
     }
 
+    // Getters
     public String getCourseCode()   { return courseCode; }
     public String getInstanceId()   { return instanceId; }
     public String getPeriod()       { return period; }

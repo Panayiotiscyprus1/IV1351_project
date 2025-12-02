@@ -15,8 +15,8 @@ public class StartUp {
         try {
             // 1. Define URL / user / password
             String url = "jdbc:postgresql://localhost:5432/iv1351";
-            String user = "postgres";      // <-- put your real DB user
-            String password = "Panas1";  // <-- and your real DB password
+            String user = "postgres";      
+            String password = "Panas1";  
 
             // 2. Create DBHandler
             DBHandler db = new DBHandler(url, user, password);
@@ -24,7 +24,7 @@ public class StartUp {
             // 3. (Temporary) test connection
             db.testConnection();
 
-            // 4. Create controller & view (later)
+            // 4. Create controller & view & start view
             Controller contr = new Controller(db);
             CommandLineInterpreter cli = new CommandLineInterpreter(contr);
             cli.start();

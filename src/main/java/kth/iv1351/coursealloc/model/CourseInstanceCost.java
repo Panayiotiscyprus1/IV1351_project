@@ -2,8 +2,8 @@ package kth.iv1351.coursealloc.model;
 
 /**
  * DTO for the result "Course Code, Instance, Period, Planned Cost, Actual Cost".
- * This is NOT a table entity, it's just a computed result from a query/view.
  */
+
 public class CourseInstanceCost {
     private final String courseCode;
     private final String instanceId;
@@ -20,6 +20,7 @@ public class CourseInstanceCost {
         this.actualCostKsek = actualCostKsek;
     }
 
+    // Getters
     public String getCourseCode() { return courseCode; }
     public String getInstanceId() { return instanceId; }
     public String getPeriod() { return period; }

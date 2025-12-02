@@ -57,8 +57,6 @@ public class CommandLineInterpreter {
                         handleDealloc(tokens);
                         break;
 
-                    // later: allocate, deallocate, add_exercise, list_exercise  
-
                     default:
                         System.out.println("Unknown command. Type 'help'.");
                 }
@@ -81,6 +79,7 @@ public class CommandLineInterpreter {
         System.out.println("  help");
         System.out.println("  quit");
     }
+
 
     private void handleCost(String[] tokens) throws SQLException {
         if (tokens.length != 2) {
@@ -108,20 +107,7 @@ public class CommandLineInterpreter {
         System.out.println("-----------------------------------------------------------------------------------------");
     }
 
-    /**
- * Command:
- *   inc_students <instance_id> <delta>
- *
- * Example:
- *   inc_students 2025-50413 100
- *
- * Increases num_students by <delta> and prints the updated number
- * of students for that instance.
- *
- * If the user wants to see how the teaching cost changed, they can run:
- *   cost <instance_id>
- * afterwards.
- */
+
     private void handleIncreaseStudents(String[] tokens) throws SQLException {
         if (tokens.length != 3) {
             System.out.println("Usage: inc_students <instance_id> <delta>");
@@ -146,117 +132,92 @@ public class CommandLineInterpreter {
     }
 
 
-    /**
- * Command:
- *   add_exercise <instance_id> <employment_id> <planned_hours>
- *
- * Example:
- *   add_exercise 2025-50273 12345 10
- *
- * This will:
- *   - ensure "Exercise" activity exists,
- *   - add/update planned_activity for that instance,
- *   - allocate the specified teacher to Exercise,
- *   - print a summary of the affected course instance and teacher.
- */
-private void handleAddExercise(String[] tokens) throws SQLException {
-    if (tokens.length != 4) {
-        System.out.println("Usage: add_exercise <instance_id> <employment_id> <planned_hours>");
-        return;
+
+    private void handleAddExercise(String[] tokens) throws SQLException {
+        if (tokens.length != 4) {
+            System.out.println("Usage: add_exercise <instance_id> <employment_id> <planned_hours>");
+            return;
+        }
+
+        String instanceId   = tokens[1];
+        String employmentId = tokens[2];
+        double plannedHours;
+
+        try {
+            plannedHours = Double.parseDouble(tokens[3]);
+        } catch (NumberFormatException e) {
+            System.out.println("planned_hours must be a number (e.g. 10 or 7.5).");
+            return;
+        }
+
+        ExerciseAllocationInfo info = contr.addExercise(instanceId, employmentId, plannedHours);
+
+        System.out.println("Exercise activity added/updated and teacher allocated.");
+        System.out.println("Affected allocation:");
+        
+        System.out.println("------------------------------------------------------------------------------");
+        System.out.printf("| %-11s | %-15s | %-6s | %-10s | %-20s |%n",
+                "Course Code",
+                "Instance ID",
+                "Period",
+                "Activity",
+                "Teacher");
+        System.out.println("------------------------------------------------------------------------------");
+        System.out.printf("| %-11s | %-15s | %-6s | %-10s | %-20s |%n",
+                info.getCourseCode(),
+                info.getInstanceId(),
+                info.getPeriod(),
+                info.getActivityName(),
+                info.getTeacherName());
+        System.out.println("------------------------------------------------------------------------------");
     }
 
-    String instanceId   = tokens[1];
-    String employmentId = tokens[2];
-    double plannedHours;
 
-    try {
-        plannedHours = Double.parseDouble(tokens[3]);
-    } catch (NumberFormatException e) {
-        System.out.println("planned_hours must be a number (e.g. 10 or 7.5).");
-        return;
+    private void handleAlloc(String[] tokens) throws SQLException {
+        if (tokens.length != 5) {
+            System.out.println("Usage: alloc <instance_id> <employment_id> <activity_name> <hours>");
+            return;
+        }
+
+        String instanceId   = tokens[1];
+        String employmentId = tokens[2];
+        String activityName = tokens[3];
+        double hours;
+
+        try {
+            hours = Double.parseDouble(tokens[4]);
+        } catch (NumberFormatException e) {
+            System.out.println("hours must be a number, e.g. 5 or 7.5");
+            return;
+        }
+
+        try {
+            contr.allocateTeaching(instanceId, employmentId, activityName, hours);
+            System.out.println("Allocation created/updated: " + employmentId +
+                    " -> " + activityName + " on " + instanceId +
+                    " (" + hours + " hours).");
+        } catch (TeacherOverloadedException e) {
+            System.out.println("Cannot allocate: " + e.getMessage());
+        }
     }
 
-    ExerciseAllocationInfo info = contr.addExercise(instanceId, employmentId, plannedHours);
-
-    System.out.println("Exercise activity added/updated and teacher allocated.");
-    System.out.println("Affected allocation:");
-    
-    System.out.println("------------------------------------------------------------------------------");
-    System.out.printf("| %-11s | %-15s | %-6s | %-10s | %-20s |%n",
-            "Course Code",
-            "Instance ID",
-            "Period",
-            "Activity",
-            "Teacher");
-    System.out.println("------------------------------------------------------------------------------");
-    System.out.printf("| %-11s | %-15s | %-6s | %-10s | %-20s |%n",
-            info.getCourseCode(),
-            info.getInstanceId(),
-            info.getPeriod(),
-            info.getActivityName(),
-            info.getTeacherName());
-    System.out.println("------------------------------------------------------------------------------");
-}
 
 
-/**
- * Command:
- *   alloc <instance_id> <employment_id> <activity_name> <hours>
- *
- * Example:
- *   alloc 2025-50273 E2025-001 Lecture 5
- */
-private void handleAlloc(String[] tokens) throws SQLException {
-    if (tokens.length != 5) {
-        System.out.println("Usage: alloc <instance_id> <employment_id> <activity_name> <hours>");
-        return;
+    private void handleDealloc(String[] tokens) throws SQLException {
+        if (tokens.length != 4) {
+            System.out.println("Usage: dealloc <instance_id> <employment_id> <activity_name>");
+            return;
+        }
+
+        String instanceId   = tokens[1];
+        String employmentId = tokens[2];
+        String activityName = tokens[3];
+
+        contr.deallocateTeaching(instanceId, employmentId, activityName);
+
+        System.out.println("Deallocated " + employmentId + " from " +
+                activityName + " on " + instanceId + ".");
     }
-
-    String instanceId   = tokens[1];
-    String employmentId = tokens[2];
-    String activityName = tokens[3];
-    double hours;
-
-    try {
-        hours = Double.parseDouble(tokens[4]);
-    } catch (NumberFormatException e) {
-        System.out.println("hours must be a number, e.g. 5 or 7.5");
-        return;
-    }
-
-    try {
-        contr.allocateTeaching(instanceId, employmentId, activityName, hours);
-        System.out.println("Allocation created/updated: " + employmentId +
-                " -> " + activityName + " on " + instanceId +
-                " (" + hours + " hours).");
-    } catch (TeacherOverloadedException e) {
-        System.out.println("Cannot allocate: " + e.getMessage());
-    }
-}
-
-
-/**
- * Command:
- *   dealloc <instance_id> <employment_id> <activity_name>
- *
- * Example:
- *   dealloc 2025-50273 E2025-001 Lecture
- */
-private void handleDealloc(String[] tokens) throws SQLException {
-    if (tokens.length != 4) {
-        System.out.println("Usage: dealloc <instance_id> <employment_id> <activity_name>");
-        return;
-    }
-
-    String instanceId   = tokens[1];
-    String employmentId = tokens[2];
-    String activityName = tokens[3];
-
-    contr.deallocateTeaching(instanceId, employmentId, activityName);
-
-    System.out.println("Deallocated " + employmentId + " from " +
-            activityName + " on " + instanceId + ".");
-}
 
 
 
