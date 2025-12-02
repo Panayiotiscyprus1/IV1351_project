@@ -14,7 +14,7 @@ public class StartUp {
     public static void main(String[] args) {
         try {
             // 1. Define URL / user / password
-            String url = "jdbc:postgresql://localhost:5432/iv1351_task3";
+            String url = "jdbc:postgresql://localhost:5432/iv1351";
             String user = "postgres";      // <-- put your real DB user
             String password = "Panas1";  // <-- and your real DB password
 

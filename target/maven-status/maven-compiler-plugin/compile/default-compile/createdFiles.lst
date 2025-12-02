@@ -2,6 +2,8 @@ kth/iv1351/coursealloc/controller/Controller.class
 kth/iv1351/coursealloc/model/ExerciseAllocationInfo.class
 kth/iv1351/coursealloc/view/CommandLineInterpreter.class
 kth/iv1351/coursealloc/StartUp.class
+kth/iv1351/coursealloc/integration/DBHandler$InstancePeriod.class
 kth/iv1351/coursealloc/integration/DBHandler.class
 kth/iv1351/coursealloc/model/TeacherOverloadedException.class
+kth/iv1351/coursealloc/integration/DBHandler$PlannedAggregate.class
 kth/iv1351/coursealloc/model/CourseInstanceCost.class
