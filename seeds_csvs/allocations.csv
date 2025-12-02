@@ -15,3 +15,6 @@ instance_id,activity_name,employment_id,allocated_hours
 2025-52000,Lab,E2025-004,13
 2025-52000,Lab,E2025-002,7
 2025-52000,Others,E2025-002,8
+2025-52001,Lecture,E2025-001,15
+2025-52002,Lecture,E2025-001,15
+2025-52003,Lecture,E2025-001,15

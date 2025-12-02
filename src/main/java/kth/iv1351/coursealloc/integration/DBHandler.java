@@ -459,7 +459,7 @@ public static class InstancePeriod {
     "JOIN course_instance ci ON ci.instance_id = a.instance_id " +
     "WHERE a.employment_id = ? " +
     "  AND ci.study_year   = ? " +
-    "  AND ci.study_period = ?";
+    "  AND ci.study_period::text = ?";
 
     try (PreparedStatement ps = connection.prepareStatement(sql)) {
     ps.setString(1, employmentId);
@@ -496,6 +496,23 @@ public static class InstancePeriod {
     }
     }
 
+
+    public void upsertPlannedActivity(String instanceId,
+            long teachingActivityId,
+            double plannedHours) throws SQLException {
+    String sql =
+    "INSERT INTO planned_activity (instance_id, teaching_activity_id, planned_hours) " +
+    "VALUES (?, ?, ?) " +
+    "ON CONFLICT (instance_id, teaching_activity_id) " +
+    "DO UPDATE SET planned_hours = EXCLUDED.planned_hours";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    ps.setString(1, instanceId);
+    ps.setLong(2, teachingActivityId);
+    ps.setDouble(3, plannedHours);
+    ps.executeUpdate();
+    }
+    }
 
     /**
      * Pure CRUD: insert or update an allocation row with given hours.

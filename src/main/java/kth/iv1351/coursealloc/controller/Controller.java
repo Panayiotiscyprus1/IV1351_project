@@ -128,6 +128,7 @@ public void allocateTeaching(String instanceId,
         }
 
         // 5. All good -> do the actual allocation (CRUD)
+        db.upsertPlannedActivity(instanceId, activityId, allocatedHours);
         db.upsertAllocation(instanceId, activityId, employmentId, allocatedHours);
 
         db.commit();
