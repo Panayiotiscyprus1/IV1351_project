@@ -137,16 +137,17 @@ public class Controller {
         String employmentId,
         String activityName)
     throws SQLException {
-    try {
-    db.beginTransaction();
+        try {
+        db.beginTransaction();
 
-    long activityId = db.getTeachingActivityIdByName(activityName);
-    db.deleteAllocation(instanceId, activityId, employmentId);
+        long activityId = db.getTeachingActivityIdByName(activityName);
+        db.deleteAllocation(instanceId, activityId, employmentId);
 
-    db.commit();
-    } catch (SQLException e) {
-    db.rollback();
-    throw e;
-    }
+        db.commit();
+        } 
+    catch (SQLException e) {
+        db.rollback();
+        throw e;
+        }
     }
 }
