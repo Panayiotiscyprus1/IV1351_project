@@ -19,6 +19,7 @@ creates materialized views to optimize retrievals of frequently used queries
 
 * **Optimization** via indexes and materialized views
     
+* **Programmatic Access** via Java simple program using CLI interface. 
 
 What the System Manages
 --------------------------
@@ -70,38 +71,28 @@ Tech & Prerequisites
 *   PostgreSQL **18**
     
 *   CLI access via psql
+
+*   Maven from programmatic access and JDBC
     
 
 Project Layout
 -----------------
 
 IV1351_PROJECT/  
-├─ sql/  
-│  ├─ schema.sql        # Tables, types, constraints, indexes  
-│  ├─ functions.sql     # Business logic (Procedural Language/PostgreSQL)  
-│  ├─ triggers.sql      # Triggers  
-│  ├─ seeds.sql         # CSV loader + inserts  
-│  ├─ indexes.sql       # Indexes used for OLAP optimization  
-│  └─ olap.sql          # OLAP/reporting queries
-├─ seeds_csvs/     
-│  ├─ person.csv     
-│  ├─ employee.csv     
-│  ├─ department.csv     
-│  ├─ affiliations.csv     
-│  ├─ teaching_activity.csv     
-│  ├─ course_layout.csv     
-│  ├─ course_instance.csv     
-│  ├─ planned_activity.csv     
-│  ├─ allocations.csv     
-│  ├─ job_titles.csv  
-│  ├─ salary.csv
-│  ├─ skills.csv
-│  ├─ phone_number.csv
-│  └─ employee_skills.csv
-├─ erd/
-│  └─ logical_model.png
-└─ analysis/
-   └─  # txt files with EXPLAIN ANALYZE efficiency reports used for optimization
+
+* sql/ : sql scripts for creating the database, function and triggers, populating the database with example data, creating indexes and views 
+
+* seeds_csvs/ : csv file used for seeding
+
+* erd/ : Logical model with physical properties of the DB
+
+* Analysis/ : EXPLAIN ANALYZE posgresql output on various queries (from OLAP) used to optimize the DB.
+
+* .vscode/ : json file that adds src/main/java to the java project path.
+
+* bash_scripts/ : 2 bash scripts the user adapts to his configurations and runs to create the DB and start the program
+
+* src/main/java/kth/iv1351/coursealloc/ : all java code following MVC layered architecture for programmatic access to the DB. 
 
 
 Run Instructions
@@ -109,15 +100,9 @@ Run Instructions
 
 You must be in the **project root directory** (IV1351\_PROJECT/) when running commands locally — relative paths in seeds.sql depend on it.
 
-1. `psql -U postgres -h localhost` 
-2. `CREATE DATABASE iv1351;`
-3. `\c iv1351`
-4. `\i sql/schema.sql`  
-5. `\i sql/functions.sql`  
-6. `\i sql/triggers.sql`  
-7. `\i sql/seeds.sql`
-8. `\i sql/indexes.sql`
-9. `\i sql/olap.sql`
+* Configure the 2 bash scripts to your user credentials and update the paths
+* In StartUP.java update url user and password to your Postgres credentials
+* Run the 2 bash scripts, in 2 terminal windows
 
 Seeding Details
 ---------------
