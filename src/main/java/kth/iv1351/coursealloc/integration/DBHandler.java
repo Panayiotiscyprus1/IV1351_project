@@ -8,8 +8,8 @@ import java.sql.*;
 /**
  * DAO / integration layer.
  * Responsible for:
- *   - Creating and owning a single JDBC {@link Connection} (with auto-commit disabled)
- *   - Providing CRUD-style methods for cost calculation, student count updates, and teaching allocations.
+ *   - Creating and owning a single JDBC Connection (with auto-commit disabled)
+ *   - Providing CRUD methods for cost calculation, student count updates, and teaching allocations.
  *   - No business logic: all rules are implemented in the controller.
  */
 
@@ -440,7 +440,7 @@ public class DBHandler {
 
     /**
      * Returns true if this teacher has at least one allocation on this instance (any activity).
-     * Again, no business decision here, just data; the controller uses this to decide whether to allow deallocation.
+     * NO business decision here, just data; the controller uses this to decide whether to allow deallocation.
      */
     public boolean teacherAlreadyAllocatedOnInstance(String instanceId,
                                                      String employmentId) throws SQLException {
