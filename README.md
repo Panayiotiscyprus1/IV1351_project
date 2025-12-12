@@ -183,6 +183,20 @@ ORDER BY d.department_name, employee_name;
 
 ```
 
+FOR VERIFYING AGAINST CLI
+--------------------------
+```sql
+
+-- increment students
+SELECT num_students FROM course_instance WHERE instance_id = '2025-52000';
+
+-- add exercise, alloc, dealloc
+SELECT instance_id, activity_name, employment_id, allocated_hours FROM allocations
+JOIN teaching_activity ON teaching_activity.id = allocations.teaching_activity_id
+WHERE instance_id = '2025-52000';
+
+```
+
 **Authors:** Panayiotis Charalambous, Milana Timonina, Alex Ambersky
 **Course:** Data Storage Paradigms (KTH Royal Institute of Technology) 
 **Year:** 2025
