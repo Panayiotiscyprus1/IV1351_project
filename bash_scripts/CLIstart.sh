@@ -4,6 +4,6 @@
 
 echo "Starting IV1351 CLI interface..."
 
-mvn clean install
+mvn clean compile
 
 mvn exec:java 
