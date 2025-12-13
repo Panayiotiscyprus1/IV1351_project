@@ -1,7 +1,10 @@
 /Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/StartUp.java
 /Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/controller/Controller.java
 /Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/integration/DBHandler.java
+/Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/model/AllocationService.java
 /Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/model/CourseInstanceCost.java
+/Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/model/CourseService.java
 /Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/model/ExerciseAllocationInfo.java
 /Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/model/TeacherOverloadedException.java
+/Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/model/TeachingService.java
 /Users/panayiwthzz/IV1351_project/src/main/java/kth/iv1351/coursealloc/view/CommandLineInterpreter.java

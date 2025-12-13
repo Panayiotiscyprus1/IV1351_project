@@ -1,6 +1,9 @@
+kth/iv1351/coursealloc/model/TeachingService.class
 kth/iv1351/coursealloc/controller/Controller.class
 kth/iv1351/coursealloc/model/ExerciseAllocationInfo.class
 kth/iv1351/coursealloc/view/CommandLineInterpreter.class
+kth/iv1351/coursealloc/model/AllocationService.class
+kth/iv1351/coursealloc/model/CourseService.class
 kth/iv1351/coursealloc/StartUp.class
 kth/iv1351/coursealloc/integration/DBHandler$InstancePeriod.class
 kth/iv1351/coursealloc/integration/DBHandler.class
