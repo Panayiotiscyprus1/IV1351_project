@@ -41,8 +41,7 @@ public class Controller {
             throws SQLException {
         try {
             db.beginTransaction();
-            CourseInstanceCost cost =
-                    courseService.computeCourseCost(instanceId);
+            CourseInstanceCost cost = courseService.computeCourseCost(instanceId);
             db.commit();
             return cost;
         } catch (Exception e) {
@@ -55,8 +54,7 @@ public class Controller {
             throws SQLException {
         try {
             db.beginTransaction();
-            int newCount =
-                    courseService.increaseStudents(instanceId, delta);
+            int newCount = courseService.increaseStudents(instanceId, delta);
             db.commit();
             return newCount;
         } catch (Exception e) {
@@ -71,8 +69,7 @@ public class Controller {
             throws SQLException {
         try {
             db.beginTransaction();
-            ExerciseAllocationInfo info =
-                    allocationService.addExercise(instanceId, employmentId, plannedHours);
+            ExerciseAllocationInfo info = allocationService.addExercise(instanceId, employmentId, plannedHours);
             db.commit();
             return info;
         } catch (Exception e) {

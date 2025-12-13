@@ -8,11 +8,9 @@ import kth.iv1351.coursealloc.integration.DBHandler;
  * ----------------------------
  * Domain-layer service responsible for allocation actions that do NOT enforce 
  * special business constraints, such as Exercises and deletions.
- *
  * Responsibilities:
- *   • Add an exercise-type planned activity to a course instance.
- *   • Deallocate an activity from a teacher.
- *
+ *   -> Add an exercise-type planned activity to a course instance.
+ *   -> Deallocate an activity from a teacher.
  * No business rules here — only straightforward domain operations.
  */
 public class AllocationService {
