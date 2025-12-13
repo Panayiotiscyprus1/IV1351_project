@@ -37,8 +37,7 @@ public class Controller {
         this.teachingService = new TeachingService(db);
     }
 
-    public CourseInstanceCost computeCourseCost(String instanceId)
-            throws SQLException {
+    public CourseInstanceCost computeCourseCost(String instanceId) throws SQLException {
         try {
             db.beginTransaction();
             CourseInstanceCost cost = courseService.computeCourseCost(instanceId);
@@ -50,8 +49,7 @@ public class Controller {
         }
     }
 
-    public int increaseStudents(String instanceId, int delta)
-            throws SQLException {
+    public int increaseStudents(String instanceId, int delta) throws SQLException {
         try {
             db.beginTransaction();
             int newCount = courseService.increaseStudents(instanceId, delta);
@@ -65,8 +63,7 @@ public class Controller {
 
     public ExerciseAllocationInfo addExercise(String instanceId,
                                               String employmentId,
-                                              double plannedHours)
-            throws SQLException {
+                                              double plannedHours) throws SQLException {
         try {
             db.beginTransaction();
             ExerciseAllocationInfo info = allocationService.addExercise(instanceId, employmentId, plannedHours);
@@ -81,8 +78,7 @@ public class Controller {
     public void allocateTeaching(String instanceId,
                                  String employmentId,
                                  String activityName,
-                                 double allocatedHours)
-            throws SQLException, TeacherOverloadedException {
+                                 double allocatedHours) throws SQLException, TeacherOverloadedException {
         try {
             db.beginTransaction();
             teachingService.allocateTeaching(instanceId, employmentId, activityName, allocatedHours);
@@ -95,8 +91,7 @@ public class Controller {
 
     public void deallocateTeaching(String instanceId,
                                    String employmentId,
-                                   String activityName)
-            throws SQLException {
+                                   String activityName) throws SQLException {
         try {
             db.beginTransaction();
             allocationService.deallocateTeaching(instanceId, employmentId, activityName);
