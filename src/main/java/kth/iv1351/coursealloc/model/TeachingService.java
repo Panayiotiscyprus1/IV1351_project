@@ -7,20 +7,16 @@ import kth.iv1351.coursealloc.integration.DBHandler.InstancePeriod;
 
 /**
  * TeachingService
- * ---------------
  * Domain-layer service encapsulating ALL teaching-allocation business rules.
- *
  * Main rule:
  *   - A teacher may NOT teach in more than 4 course instances in the same
  *     (study_year, study_period).
- *
  * Implementation:
- *   - Uses DBHandler.executeInTransaction(...) to run the whole sequence of:
+ *   - Uses DBHandler.executeInTransaction to run the whole sequence of:
  *       * lookups
  *       * overload check
  *       * inserts/updates
  *     in a single transaction.
- *
  * Transaction handling is still done by DBHandler, not by this service.
  */
 public class TeachingService {

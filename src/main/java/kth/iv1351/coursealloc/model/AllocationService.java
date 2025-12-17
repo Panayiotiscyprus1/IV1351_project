@@ -5,11 +5,9 @@ import kth.iv1351.coursealloc.integration.DBHandler;
 
 /**
  * AllocationService
- * -----------------
  * Domain-layer service for allocation-related use cases WITHOUT special constraints:
  *   - Add Exercise allocation.
  *   - Deallocate any teaching activity.
- *
  * All operations are wrapped in DBHandler.executeInTransaction(...)
  * so the DAO/integration layer controls commit/rollback.
  */
@@ -20,9 +18,7 @@ public class AllocationService {
         this.db = db;
     }
 
-    /**
-     * Use case: add/update an Exercise activity allocation.
-     */
+     // Use case: add/update an Exercise activity allocation.
     public ExerciseAllocationInfo addExercise(String instanceId,
                                               String employmentId,
                                               double plannedHours)
@@ -33,10 +29,7 @@ public class AllocationService {
         );
     }
 
-    /**
-     * Use case: deallocate a teaching activity for a given teacher and instance.
-     * Always allowed (no special rule).
-     */
+    // Use case: deallocate a teaching activity for a given teacher and instance.
     public void deallocateTeaching(String instanceId,
                                    String employmentId,
                                    String activityName)

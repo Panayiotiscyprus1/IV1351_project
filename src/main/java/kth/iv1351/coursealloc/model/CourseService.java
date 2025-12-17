@@ -5,11 +5,9 @@ import kth.iv1351.coursealloc.integration.DBHandler;
 
 /**
  * CourseService
- * -------------
  * Domain-layer service that encapsulates all course-related use cases:
  *   - Compute cost for a course instance.
  *   - Increase number of students.
- *
  * It uses DBHandler's executeInTransaction(...) so that the integration layer
  * owns transaction handling, while this class owns business meaning.
  */
