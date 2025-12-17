@@ -16,7 +16,7 @@ import kth.iv1351.coursealloc.integration.DBHandler.InstancePeriod;
  *       * lookups
  *       * overload check
  *       * inserts/updates
- *     in a single transaction.
+ *       in a single transaction.
  * Transaction handling is still done by DBHandler, not by this service.
  */
 public class TeachingService {
@@ -33,7 +33,7 @@ public class TeachingService {
             throws SQLException, TeacherOverloadedException {
 
         // We need to know after the transaction whether we violated the rule.
-        final boolean[] overloaded = { false };
+        final boolean[] overloaded = { false };  // Use array to allow mutation inside lambda
         final String[] overloadMessage = { null };
 
         db.executeInTransaction(() -> {
@@ -49,8 +49,7 @@ public class TeachingService {
 
             // If this is a new instance for that teacher in that period, enforce max 4 rule
             if (!alreadyOnThisInstance) {
-                int currentInstances =
-                        db.countTeacherInstancesInPeriod(employmentId, ip.studyYear, ip.studyPeriod);
+                int currentInstances = db.countTeacherInstancesInPeriod(employmentId, ip.studyYear, ip.studyPeriod);
 
                 if (currentInstances >= 4) {
                     overloaded[0] = true;
