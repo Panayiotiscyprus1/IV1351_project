@@ -7,12 +7,21 @@ import kth.iv1351.coursealloc.integration.DBHandler.InstancePeriod;
 
 /**
  * TeachingService
- * ----------------------------
- * Domain-layer service encapsulating ALL teaching allocation business rules.
- * Responsibilities:
- *   -> Enforce the rule: a teacher may teach in MAX 4 course instances per (study_year, study_period).
- *   -> Perform teaching allocations after validation.
- * This class is the ONLY place where allocation constraints are enforced.
+ * ---------------
+ * Domain-layer service encapsulating ALL teaching-allocation business rules.
+ *
+ * Main rule:
+ *   - A teacher may NOT teach in more than 4 course instances in the same
+ *     (study_year, study_period).
+ *
+ * Implementation:
+ *   - Uses DBHandler.executeInTransaction(...) to run the whole sequence of:
+ *       * lookups
+ *       * overload check
+ *       * inserts/updates
+ *     in a single transaction.
+ *
+ * Transaction handling is still done by DBHandler, not by this service.
  */
 public class TeachingService {
     private final DBHandler db;
@@ -21,32 +30,54 @@ public class TeachingService {
         this.db = db;
     }
 
-    public void allocateTeaching(String instanceId, String employmentId, String activityName, double allocatedHours) throws SQLException, TeacherOverloadedException {
+    public void allocateTeaching(String instanceId,
+                                 String employmentId,
+                                 String activityName,
+                                 double allocatedHours)
+            throws SQLException, TeacherOverloadedException {
 
-        long activityId = db.getTeachingActivityIdByName(activityName);
+        // We need to know after the transaction whether we violated the rule.
+        final boolean[] overloaded = { false };
+        final String[] overloadMessage = { null };
 
-        // Get study year & period of the instance
-        InstancePeriod ip = db.getInstancePeriod(instanceId);
+        db.executeInTransaction(() -> {
+            // Get activity id
+            long activityId = db.getTeachingActivityIdByName(activityName);
 
-        // Determine if teacher already teaches on this instance
-        boolean alreadyAllocated = db.teacherAlreadyAllocatedOnInstance(instanceId, employmentId);
+            // Get target instance year & period
+            InstancePeriod ip = db.getInstancePeriod(instanceId);
 
-        // Enforce "max 4 instances per teacher per period" business rule
-        if (!alreadyAllocated) {
-            int currentCount = db.countTeacherInstancesInPeriod(employmentId, ip.studyYear, ip.studyPeriod);
+            // Check if teacher already has *any* allocation on this instance
+            boolean alreadyOnThisInstance =
+                    db.teacherAlreadyAllocatedOnInstance(instanceId, employmentId);
 
-            if (currentCount >= 4) {
-                throw new TeacherOverloadedException(
-                    "Teacher " + employmentId + " already teaches "
-                    + currentCount + " course instances in period "
-                    + ip.studyPeriod + " of " + ip.studyYear + "."
-                );
+            // If this is a new instance for that teacher in that period, enforce max 4 rule
+            if (!alreadyOnThisInstance) {
+                int currentInstances =
+                        db.countTeacherInstancesInPeriod(employmentId, ip.studyYear, ip.studyPeriod);
+
+                if (currentInstances >= 4) {
+                    overloaded[0] = true;
+                    overloadMessage[0] =
+                            "Teacher " + employmentId + " already has " +
+                            currentInstances + " course instances in period " +
+                            ip.studyPeriod + " of year " + ip.studyYear +
+                            " -> cannot allocate another instance.";
+                    // We do NOT perform any writes in this case.
+                    return null;
+                }
             }
-        }
 
-        // If rule satisfied -> perform actual allocation
-        db.upsertPlannedActivity(instanceId, activityId, allocatedHours);
-        db.upsertAllocation(instanceId, activityId, employmentId, allocatedHours);
+            // Rule satisfied -> perform the actual allocation
+            db.upsertPlannedActivity(instanceId, activityId, allocatedHours);
+            db.upsertAllocation(instanceId, activityId, employmentId, allocatedHours);
+
+            return null;
+        });
+
+        // Outside the transaction, convert the overload condition to a domain exception
+        if (overloaded[0]) {
+            throw new TeacherOverloadedException(overloadMessage[0]);
+        }
     }
 }
-

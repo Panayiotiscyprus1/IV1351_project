@@ -6,47 +6,80 @@ import kth.iv1351.coursealloc.model.ExerciseAllocationInfo;
 import java.sql.*;
 
 /**
- * DAO / integration layer.
- * Responsible for:
- *   - Creating and owning a single JDBC Connection (with auto-commit disabled)
- *   - Providing CRUD methods for cost calculation, student count updates, and teaching allocations.
- *   - No business logic: all rules are implemented in the controller.
+ * DBHandler (DAO / Integration Layer)
+ * -----------------------------------
+ * Responsibilities:
+ *   - Owns a single JDBC Connection (auto-commit disabled).
+ *   - Provides CRUD and query methods for the rest of the application.
+ *   - Provides a generic transaction wrapper (executeInTransaction) that
+ *     begins, commits and rolls back transactions.
+ *
+ * IMPORTANT:
+ *   - No business rules here: all domain rules are in the model/domain layer.
+ *   - Controllers do NOT call begin/commit/rollback directly anymore.
+ *   - Instead, domain services call executeInTransaction(...) when they
+ *     need a multi-statement operation to be atomic.
  */
-
-
 public class DBHandler {
     private final Connection connection;
-    
+
     public DBHandler(String url, String user, String password) throws SQLException {
         this.connection = DriverManager.getConnection(url, user, password);
-        this.connection.setAutoCommit(false);
+        this.connection.setAutoCommit(false); // manual transaction control
     }
 
+    /**
+     * Functional interface used by the transaction wrapper.
+     * A lambda passed to executeInTransaction(...) must implement this and
+     * can return a value of type T or throw SQLException.
+     */
+    @FunctionalInterface
+    public interface TransactionCallback<T> {
+        T execute() throws SQLException;
+    }
 
     /**
-     * Semantic hook for starting a transaction.
-     * Currently empty because setAutoCommit(false) means every sequence
-     * of statements is already inside a transaction until #commit() or
-     * #rollback() is called. Using it for readability purposes.
+     * Transaction wrapper.
+     * - Begins a transaction.
+     * - Executes the callback.
+     * - Commits on success.
+     * - Rolls back on ANY SQLException.
+     *
+     * This is the ONLY place where commit/rollback is done.
      */
-    public void beginTransaction() throws SQLException { }
+    public <T> T executeInTransaction(TransactionCallback<T> action) throws SQLException {
+        try {
+            beginTransaction();
+            T result = action.execute();
+            commit();
+            return result;
+        } catch (SQLException e) {
+            rollback();
+            throw e;
+        }
+    }
 
+    /**
+     * Starts a transaction.
+     * Private: only used by executeInTransaction().
+     */
+    private void beginTransaction() throws SQLException {
+        // With autoCommit=false, we're already in a transaction by default,
+        // but this method is kept for semantic clarity and future extension.
+    }
 
-    // Commits the current transaction.
-    public void commit() throws SQLException {
+    // Commits the current transaction. Private: all callers go through executeInTransaction().
+    private void commit() throws SQLException {
         connection.commit();
     }
 
-
-     // Rolls back the current transaction.
-    public void rollback() throws SQLException {
+    // Rolls back the current transaction. Private: all callers go through executeInTransaction().
+    private void rollback() throws SQLException {
         connection.rollback();
     }
 
     /**
-     * Simple connectivity test:
-     * runs SELECT 1 and prints the result.
-     * throws SQLException if the query fails.
+     * Simple connectivity test.
      */
     public void testConnection() throws SQLException {
         String sql = "SELECT 1";
@@ -58,12 +91,18 @@ public class DBHandler {
         }
     }
 
-
     // ============================================================================
     //  COST CALCULATION USING EXISTING OLAP VIEWS (CURRENT YEAR)
     // ============================================================================
 
-    //Computes the planned and actual teaching cost for a given course instance in the current year.
+    /**
+     * Computes the planned and actual teaching cost for a given course instance
+     * in the current year.
+     *
+     * NOTE: This method does NOT contain transaction code itself.
+     * Domain services can choose to call it inside executeInTransaction(...) if
+     * they want a consistent snapshot. For this use case, it is read-only.
+     */
     public CourseInstanceCost computeCostForInstance(String instanceId) throws SQLException {
         // 1. Planned part: total planned hours * average hourly salary
         PlannedAggregate planned = fetchPlannedPart(instanceId);
@@ -99,8 +138,6 @@ public class DBHandler {
 
     /**
      * Computes the average hourly salary across all current salary rows.
-     * the average hourly salary in SEK.
-     * SQLException if the query fails or returns no data.
      */
     private double fetchAverageHourlySalary() throws SQLException {
         String sql =
@@ -118,7 +155,7 @@ public class DBHandler {
         }
     }
 
-    //Planned part of the cost:
+    // Planned part of the cost:
     private PlannedAggregate fetchPlannedPart(String instanceId) throws SQLException {
         double avgHourlySalary = fetchAverageHourlySalary();
 
@@ -151,7 +188,7 @@ public class DBHandler {
         }
     }
 
-    //Actual part of the cost:
+    // Actual part of the cost:
     private double fetchActualPart(String instanceId) throws SQLException {
         String sql =
                 "SELECT SUM(q.\"Total Hours\" * s.salary) AS total_cost " +
@@ -174,12 +211,16 @@ public class DBHandler {
         }
     }
 
-
     // ============================================================================
-    //  STUDENT COUNT UPDATE (READ–MODIFY–WRITE WITH SELECT ... FOR UPDATE)
+    //  STUDENT COUNT UPDATE (READ–MODIFY–WRITE)
     // ============================================================================
 
-    
+    /**
+     * Increases num_students for a course instance by delta.
+     *
+     * NOTE: This method does NOT open/commit the transaction itself.
+     * It is meant to be called inside executeInTransaction(...) from a domain service.
+     */
     public int increaseNumStudents(String instanceId, int delta) throws SQLException {
         // Lock the row and read current num_students
         String selectSql =
@@ -218,9 +259,19 @@ public class DBHandler {
     }
 
     // ============================================================================
-    //  EXERCISE ACTIVITY (TASK 4)
+    //  EXERCISE ACTIVITY
     // ============================================================================
 
+    /**
+     * Adds or updates an Exercise activity and allocation in one logical operation.
+     * - Ensures a teaching_activity 'Exercise' exists (getOrCreateExerciseActivityId).
+     * - Upserts planned_activity.
+     * - Upserts allocations.
+     * - Reads back a summary row from v_allocation_hours.
+     *
+     * This method itself does NOT commit or roll back; the caller wraps it
+     * inside executeInTransaction(...) if needed.
+     */
     public ExerciseAllocationInfo addExerciseActivity(String instanceId,
                                                       String employmentId,
                                                       double plannedHours)
@@ -230,7 +281,7 @@ public class DBHandler {
         // planned_activity: planned_hours
         upsertPlannedExercise(instanceId, exerciseActivityId, plannedHours);
 
-        // allocations: allocated_hours (we reuse plannedHours as initial allocated load)
+        // allocations: allocated_hours (reuse plannedHours as initial load)
         insertExerciseAllocation(instanceId, exerciseActivityId, employmentId, plannedHours);
 
         return fetchExerciseAllocationInfo(instanceId, employmentId);
@@ -269,8 +320,7 @@ public class DBHandler {
 
     /**
      * Ensures there is a planned_activity row for this instance + Exercise.
-     * If it exists, updates planned_hours. otherwise, inserts a new row.
-     * Assumes a UNIQUE/PK constraint on (instance_id, teaching_activity_id).
+     * If it exists, updates planned_hours; otherwise inserts a new row.
      */
     private void upsertPlannedExercise(String instanceId,
                                        long exerciseActivityId,
@@ -289,7 +339,9 @@ public class DBHandler {
         }
     }
 
-    //Inserts or updates a row in code allocations for (instance, Exercise activity, teacher).
+    /**
+     * Inserts or updates a row in allocations for (instance, Exercise activity, teacher).
+     */
     private void insertExerciseAllocation(String instanceId,
                                           long exerciseActivityId,
                                           String employmentId,
@@ -354,12 +406,10 @@ public class DBHandler {
     }
 
     // ============================================================================
-    //  GENERIC LOOKUPS / HELPERS FOR CONTROLLER
+    //  GENERIC LOOKUPS / HELPERS FOR DOMAIN SERVICES
     // ============================================================================
 
-    /**
-     * Looks up a teaching_activity.id by its name.
-     */
+    /** Looks up a teaching_activity.id by its name. */
     public long getTeachingActivityIdByName(String activityName) throws SQLException {
         String sql = "SELECT id FROM teaching_activity WHERE activity_name = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -373,10 +423,7 @@ public class DBHandler {
         }
     }
 
-    /**
-     * Simple DTO for study_year and study_period of an instance
-     * (used by controller logic).
-     */
+    /** Simple DTO for study_year and study_period of an instance. */
     public static class InstancePeriod {
         public final int studyYear;
         public final String studyPeriod;
@@ -387,10 +434,7 @@ public class DBHandler {
         }
     }
 
-    /**
-     * Reads study_year and study_period from course_instance
-     * for the given code instance_id
-     */
+    /** Reads study_year and study_period from course_instance for the given instance_id. */
     public InstancePeriod getInstancePeriod(String instanceId) throws SQLException {
         String sql =
                 "SELECT study_year, study_period " +
@@ -413,7 +457,7 @@ public class DBHandler {
     /**
      * Returns how many distinct course instances this teacher has allocations in
      * for a given study_year, study_period.
-    */
+     */
     public int countTeacherInstancesInPeriod(String employmentId,
                                              int studyYear,
                                              String studyPeriod) throws SQLException {
@@ -440,7 +484,6 @@ public class DBHandler {
 
     /**
      * Returns true if this teacher has at least one allocation on this instance (any activity).
-     * NO business decision here, just data; the controller uses this to decide whether to allow deallocation.
      */
     public boolean teacherAlreadyAllocatedOnInstance(String instanceId,
                                                      String employmentId) throws SQLException {
@@ -459,8 +502,7 @@ public class DBHandler {
         }
     }
 
-
-    //Upserts a planned_activity row for any activity, not just Exercise.
+    /** Upserts a planned_activity row for any activity (not just Exercise). */
     public void upsertPlannedActivity(String instanceId,
                                       long teachingActivityId,
                                       double plannedHours) throws SQLException {
@@ -478,7 +520,7 @@ public class DBHandler {
         }
     }
 
-    //Pure CRUD: insert or update an allocation row with given hours.
+    /** Pure CRUD: insert or update an allocation row with given hours. */
     public void upsertAllocation(String instanceId,
                                  long teachingActivityId,
                                  String employmentId,
@@ -498,7 +540,7 @@ public class DBHandler {
         }
     }
 
-    //Pure CRUD: delete an allocation row.
+    /** Pure CRUD: delete an allocation row. */
     public void deleteAllocation(String instanceId,
                                  long teachingActivityId,
                                  String employmentId) throws SQLException {
@@ -516,4 +558,3 @@ public class DBHandler {
         }
     }
 }
-

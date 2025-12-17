@@ -5,15 +5,14 @@ import kth.iv1351.coursealloc.integration.DBHandler;
 
 /**
  * CourseService
- * ----------------------------
- * Domain-layer service that contains ALL business logic related to courses.
- * Responsibilities:
- *   -> Compute the cost of a course instance.
- *   -> Increase the number of enrolled students in an instance.
- * This class isolates course-related business rules from the controller.
- * No SQL appears here — DBHandler (DAO) handles database access.
+ * -------------
+ * Domain-layer service that encapsulates all course-related use cases:
+ *   - Compute cost for a course instance.
+ *   - Increase number of students.
+ *
+ * It uses DBHandler's executeInTransaction(...) so that the integration layer
+ * owns transaction handling, while this class owns business meaning.
  */
-
 public class CourseService {
     private final DBHandler db;
 
@@ -21,14 +20,23 @@ public class CourseService {
         this.db = db;
     }
 
-    public CourseInstanceCost computeCourseCost(String instanceId)
-            throws SQLException {
-        return db.computeCostForInstance(instanceId);
+    /**
+     * Use case: compute the teaching cost for one course instance.
+     * Read-only, but still wrapped in a transaction to demonstrate proper layering.
+     */
+    public CourseInstanceCost computeCourseCost(String instanceId) throws SQLException {
+        return db.executeInTransaction(() ->
+                db.computeCostForInstance(instanceId)
+        );
     }
 
-    public int increaseStudents(String instanceId, int delta)
-            throws SQLException {
-        return db.increaseNumStudents(instanceId, delta);
+    /**
+     * Use case: increase num_students by the given delta.
+     * Needs a read–modify–write, so we wrap it inside one transaction.
+     */
+    public int increaseStudents(String instanceId, int delta) throws SQLException {
+        return db.executeInTransaction(() ->
+                db.increaseNumStudents(instanceId, delta)
+        );
     }
 }
-
