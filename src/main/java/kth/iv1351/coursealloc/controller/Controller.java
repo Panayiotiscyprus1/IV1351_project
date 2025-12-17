@@ -13,17 +13,13 @@ import kth.iv1351.coursealloc.model.TeachingService;
 
 /**
  * Controller
- * ----------
- * Application façade.
- *
  * Responsibilities:
- *   - Expose use-case methods to the UI / CLI.
+ *   - Expose use-case methods to the CLI.
  *   - Delegate each use case to the appropriate domain service.
  *   - Perform NO business logic.
  *   - Perform NO transaction management (no begin/commit/rollback).
- *
  * All business rules live in the model/domain layer (services).
- * All transaction handling is performed by DBHandler via executeInTransaction(...).
+ * All transaction handling is performed by DBHandler (DAO) via executeInTransaction(...).
  */
 public class Controller {
 
