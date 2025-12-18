@@ -44,7 +44,6 @@ public class DBHandler {
      * - Executes the callback.
      * - Commits on success.
      * - Rolls back on ANY SQLException.
-     *
      * This is the ONLY place where commit/rollback is done.
      */
     public <T> T executeInTransaction(TransactionCallback<T> action) throws SQLException {
@@ -96,9 +95,7 @@ public class DBHandler {
     // ============================================================================
 
     /**
-     * Computes the planned and actual teaching cost for a given course instance
-     * in the current year.
-     *
+     * Computes the planned and actual teaching cost for a given course instance in the current year.
      * NOTE: This method does NOT contain transaction code itself.
      * Domain services can choose to call it inside executeInTransaction(...) if
      * they want a consistent snapshot. For this use case, it is read-only.
