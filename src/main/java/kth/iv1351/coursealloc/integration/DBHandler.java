@@ -133,9 +133,7 @@ public class DBHandler {
         }
     }
 
-    /**
-     * Computes the average hourly salary across all current salary rows.
-     */
+    // Computes the average hourly salary across all current salary rows.
     private double fetchAverageHourlySalary() throws SQLException {
         String sql =
                 "SELECT AVG(salary) AS avg_hourly " +
@@ -214,7 +212,6 @@ public class DBHandler {
 
     /**
      * Increases num_students for a course instance by delta.
-     *
      * NOTE: This method does NOT open/commit the transaction itself.
      * It is meant to be called inside executeInTransaction(...) from a domain service.
      */
